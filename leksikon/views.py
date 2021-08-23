@@ -1,7 +1,13 @@
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from rest_framework import status
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
-# Returns a Hello World to browser
-def hello_world(request: HttpRequest):
-    return HttpResponse("Hello world")
+class Test(APIView):
+
+    def get(self, request: Request):
+        data = {
+            "message": "Pong!"
+        }
+        return Response(data, status=status.HTTP_200_OK)
