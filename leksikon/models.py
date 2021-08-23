@@ -10,14 +10,23 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
 
+    def __str__(self):
+        return self.name
+
 
 class TranslationState(models.Model):
     state = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.state
 
 
 class Link(models.Model):
     title = models.CharField(max_length=100)
     link = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
 
 
 class EnglishEntry(models.Model):
@@ -32,6 +41,9 @@ class EnglishEntry(models.Model):
     class Meta:
         verbose_name_plural = "English entries"
 
+    def __str__(self):
+        return self.entry
+
 
 class Suggestion(models.Model):
     translation = models.CharField(max_length=100)
@@ -39,6 +51,9 @@ class Suggestion(models.Model):
     description = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.translation
 
 
 class Translation(models.Model):
@@ -51,11 +66,17 @@ class Translation(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.translation
+
 
 class Gender(models.Model):
     gender = models.CharField(max_length=50)
     # An abbreviation for gender (eg. M, F, N...)
     abbr = models.CharField(max_length=10)
+
+    def __str__(self):
+        return self.gender
 
 
 class GenderVariant(models.Model):
@@ -63,6 +84,9 @@ class GenderVariant(models.Model):
     # TODO: Is this a good idea?
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE)
     text = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.translation
 
 
 # *********** MANY TO MANY RELATION TABLES ************ #
