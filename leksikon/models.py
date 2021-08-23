@@ -7,6 +7,9 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
+    class Meta:
+        verbose_name_plural = "Categories"
+
 
 class TranslationState(models.Model):
     state = models.CharField(max_length=50)
@@ -25,6 +28,9 @@ class EnglishEntry(models.Model):
     translation_comment = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "English entries"
 
 
 class Suggestion(models.Model):
@@ -69,6 +75,9 @@ class RelatedEntry(models.Model):
     source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_source')
     related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_related')
     comment = models.TextField()
+
+    class Meta:
+        verbose_name_plural = "Related entries"
 
 
 class Entry2Category(models.Model):
