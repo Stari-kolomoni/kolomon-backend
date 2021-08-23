@@ -1,10 +1,15 @@
-from django.urls import path
+from django.urls import path, include
 from leksikon import views
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'', views.Category, basename='')
 
 # All urls that start with "api/"
 urlpatterns = [
-    path("ping", views.Test.as_view()),
+    path('ping', views.ping),
+    path('categories/', include(router.urls)),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('', SpectacularSwaggerView.as_view(
         template_name='swagger-ui.html',
