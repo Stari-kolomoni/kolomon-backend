@@ -22,7 +22,30 @@ class CategorySerializer(serializers.ModelSerializer):
         return False
 
 
+class SuggestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Suggestion
+        fields = '__all__'
+
+
+class LinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Link
+        fields = '__all__'
+
+
+class TranslationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Translation
+        fields = '__all__'
+
+
 class EnglishEntrySerializer(serializers.ModelSerializer):
+    category_list = CategorySerializer(source='categories', many=True, read_only=True)
+    link_list = LinkSerializer(source='links', many=True, read_only=True)
+    suggestion_list = SuggestionSerializer(source='suggestions', many=True, read_only=True)
+    translation_list = TranslationSerializer(source='translations', many=True, read_only=True)
+
     class Meta:
         model = models.EnglishEntry
         fields = '__all__'

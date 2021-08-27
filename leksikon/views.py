@@ -17,6 +17,7 @@ def ping(request: Request):
 
 
 class Category(ModelViewSet):
+    queryset = models.EnglishEntry.objects.all()
     serializer_class = serializers.CategorySerializer
     http_method_names = ['get', 'post', 'delete', 'put']
 
@@ -66,6 +67,7 @@ class Category(ModelViewSet):
 
 
 class EnglishEntry(ModelViewSet):
+    queryset = models.EnglishEntry.objects.all()
     serializer_class = serializers.EnglishEntrySerializer
     http_method_names = ['get', 'post', 'delete', 'put']
 

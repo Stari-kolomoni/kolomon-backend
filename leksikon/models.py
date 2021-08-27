@@ -29,22 +29,6 @@ class Link(models.Model):
         return self.title
 
 
-class EnglishEntry(models.Model):
-    entry = models.CharField(max_length=100)
-    use_case = models.TextField()
-    # NOTE: translation_state can be None, always check this value
-    translation_state = models.ForeignKey(TranslationState, on_delete=models.SET_NULL, null=True, blank=True)
-    translation_comment = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "English entries"
-
-    def __str__(self):
-        return self.entry
-
-
 class Suggestion(models.Model):
     translation = models.CharField(max_length=100)
     separate_gender_form = models.BooleanField()
@@ -61,13 +45,31 @@ class Translation(models.Model):
     separate_gender_form = models.BooleanField()
     description = models.TextField()
     type = models.CharField(max_length=100)
-    # NOTE: translation_female can be None, always check this value
-    translation_female = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.translation
+
+
+class EnglishEntry(models.Model):
+    entry = models.CharField(max_length=100)
+    use_case = models.TextField()
+    # NOTE: translation_state can be None, always check this value
+    translation_state = models.ForeignKey(TranslationState, on_delete=models.SET_NULL, null=True, blank=True)
+    translation_comment = models.TextField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    categories = models.ManyToManyField(Category, blank=True)
+    links = models.ManyToManyField(Link, blank=True)
+    suggestions = models.ManyToManyField(Suggestion, blank=True)
+    translations = models.ManyToManyField(Translation, blank=True)
+
+    class Meta:
+        verbose_name_plural = "English entries"
+
+    def __str__(self):
+        return self.entry
 
 
 class Gender(models.Model):
@@ -89,11 +91,6 @@ class GenderVariant(models.Model):
         return self.translation
 
 
-# *********** MANY TO MANY RELATION TABLES ************ #
-# NOTE: All these have models.CASCADE on - when one object is deleted, the linking entry is deleted as well.
-# The remaining entry is left without link. When this is not intended, it needs to be handled explicitly.
-
-
 class RelatedEntry(models.Model):
     # TODO: Source and related entry are stupid names. Fix to imply symmetry of relation.
     source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_source')
@@ -103,27 +100,5 @@ class RelatedEntry(models.Model):
     class Meta:
         verbose_name_plural = "Related entries"
 
-
-class Entry2Category(models.Model):
-    entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-
-
-class Entry2Link(models.Model):
-    entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE)
-    link = models.ForeignKey(Link, on_delete=models.CASCADE)
-
-
-class Entry2Suggestion(models.Model):
-    entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE)
-    suggestion = models.ForeignKey(Suggestion, on_delete=models.CASCADE)
-
-
-class Entry2Translation(models.Model):
-    entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE)
-    translation = models.ForeignKey(Translation, on_delete=models.CASCADE)
-
-
-class Translation2GenderVariant(models.Model):
-    translation = models.ForeignKey(Translation, on_delete=models.CASCADE)
-    gender_variant = models.ForeignKey(GenderVariant, on_delete=models.CASCADE)
+    def __str__(self):
+        return str(self.source_entry) + " - " + str(self.related_entry)
