@@ -52,8 +52,8 @@ The API urls are located in the ``api.py`` file.
 |GET|/api/recent|Returns the list of all recent entries||
 |GET|/api/search|Searches through all possible entries|search_term: str|
 |GET|/api/ping|Pong||
-|GET|/api/token|Takes a set of user credentials and returns an access and refresh web token pair to prove the authentication of those credentials|username: str <br> password: str|
-|GET|/api/token/refresh|Takes a refresh type web token and returns an access type web token if the refresh token is valid|refresh: str|
+|POST|/api/token|Takes a set of user credentials and returns an access and refresh web token pair to prove the authentication of those credentials|username: str <br> password: str|
+|POST|/api/token/refresh|Takes a refresh type web token and returns an access type web token if the refresh token is valid|refresh: str|
 
 
 ## Development database
