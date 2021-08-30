@@ -30,29 +30,30 @@ The API urls are located in the ``api.py`` file.
 
 |HTTP request | Path  | Description | Parameters |
 --- | --- | --- | ---
-|GET|/api/english/{id}|Returns the information on the specified English entry| full: boolean <br> &#160;&#160;True: all info <br> &#160;&#160;False: only basics |
+|GET|/api/english|Returns the list of all English entries||
 |POST|/api/english|Adds a new English entry|  |
+|GET|/api/english/{id}|Returns the information on the specified English entry| full: boolean <br> &#160;&#160;True: all info <br> &#160;&#160;False: only basics |
 |PUT|/api/english/{id}|Edits the specified English entry||
 |DELETE|/api/english/{id}|Deletes the specified English entry||
-|GET|/api/english|Returns the list of all English entries||
 |GET|/api/english/recent|Returns the list of recent English entries|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created|
 |GET|/api/english/search|Searches through the English entries|search_term: str|
 |GET|/api/english/{id}/suggestions|Returns all suggestions for the given entry||
-|POST|/api/english/{id}/suggestions|Adds a new suggestions for the given entry||
+|POST|/api/english/{id}/suggestions|Adds a new suggestion for the given entry||
 |PUT|/api/english/{id}/suggestions/{id}|Edits the specified suggestion||
-|DELETE|/word/english/{id}/suggestions/{id}|Deletes the specified suggestion||
-|GET|/word/slovene/{id}|Returns the information about specified Slovene entry||
-|POST|/word/slovene|Add a new Slovene translation||
-|PATCH|/word/slovene/{id}|Edits the specified Slovene entry ||
-|DELETE|/word/slovene/{id}|Deletes the specified Slovene entry||
-|GET|/word/slovene/all|Returns the list of all Slovene entries||
-|GET|/word/slovene/recent|Returns the list of recent Slovene entries|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created|
-|GET|/word/slovene/search|Searches through the Slovene entries||
-|GET|/word/all|Returns the list of all entries||
-|GET|/word/recent|Returns the list of all recent entries||
-|GET|/word/search|Searches through all possible entries||
-|GET|/ping|Pong||
-|GET|/account/login|Login|username: str <br> password: str|
+|DELETE|/api/english/{id}/suggestions/{id}|Deletes the specified suggestion||
+|GET|/api/slovene|Returns the list of all Slovene entries||
+|POST|/api/slovene|Adds a new Slovene entry||
+|GET|/api/slovene/{id}|Returns the information about specified Slovene entry||
+|PATCH|/api/slovene/{id}|Edits the specified Slovene entry ||
+|DELETE|/api/slovene/{id}|Deletes the specified Slovene entry||
+|GET|/api/slovene/recent|Returns the list of recent Slovene entries|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created|
+|GET|/api/slovene/search|Searches through the Slovene entries|search_term: str|
+|GET|/api/all|Returns the list of all entries||
+|GET|/api/recent|Returns the list of all recent entries||
+|GET|/api/search|Searches through all possible entries|search_term: str|
+|GET|/api/ping|Pong||
+|GET|/api/token|Takes a set of user credentials and returns an access and refresh web token pair to prove the authentication of those credentials|username: str <br> password: str|
+|GET|/api/token/refresh|Takes a refresh type web token and returns an access type web token if the refresh token is valid|refresh: str|
 
 
 ## Development database
