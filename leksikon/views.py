@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import status
 from rest_framework.decorators import api_view, action
 from rest_framework.request import Request
@@ -22,11 +23,13 @@ class Category(ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'put']
 
     def list(self, request: Request, *args, **kwargs):
+        """Lists all categories"""
         queryset = models.Category.objects.all().order_by('name')
         serializer = serializers.CategorySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request: Request, *args, **kwargs):
+        """Inserts a new category in the database"""
         serializer = serializers.CategorySerializer(data=request.data)
         if serializer.is_valid():
             if serializer.is_duplicate():
@@ -36,6 +39,7 @@ class Category(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request: Request, *args, **kwargs):
+        """Updates the specific category with provided information"""
         try:
             object_id = self.kwargs.get('pk')
             query = models.Category.objects.get(id=object_id)
@@ -48,6 +52,7 @@ class Category(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def retrieve(self, request: Request, *args, **kwargs):
+        """Returns the specific category"""
         object_id = self.kwargs.get('pk')
         try:
             query = models.Category.objects.get(id=object_id)
@@ -57,6 +62,7 @@ class Category(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request: Request, *args, **kwargs):
+        """Deletes the specific category from the database"""
         object_id = self.kwargs.get('pk')
         try:
             query = models.Category.objects.get(id=object_id)
@@ -72,11 +78,13 @@ class EnglishEntry(ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'put']
 
     def list(self, request: Request, *args, **kwargs):
+        """Lists all English entries"""
         queryset = models.EnglishEntry.objects.all().order_by('entry')
         serializer = serializers.EnglishEntrySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request: Request, *args, **kwargs):
+        """Inserts a new English entry in the database"""
         serializer = serializers.EnglishEntrySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -84,6 +92,7 @@ class EnglishEntry(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request: Request, *args, **kwargs):
+        """Updates the specific English entry with provided information"""
         try:
             object_id = self.kwargs.get('pk')
             query = models.EnglishEntry.objects.get(id=object_id)
@@ -96,6 +105,7 @@ class EnglishEntry(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def retrieve(self, request: Request, *args, **kwargs):
+        """Returns the specific English entry"""
         object_id = self.kwargs.get('pk')
         try:
             query = models.EnglishEntry.objects.get(id=object_id)
@@ -105,6 +115,7 @@ class EnglishEntry(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request: Request, *args, **kwargs):
+        """Deletes the specific English entry from the database"""
         object_id = self.kwargs.get('pk')
         try:
             query = models.EnglishEntry.objects.get(id=object_id)
@@ -116,6 +127,7 @@ class EnglishEntry(ModelViewSet):
     @action(detail=True, methods=['get', 'post'],
             serializer_class=serializers.SuggestionSerializer)
     def suggestions(self, request: Request, pk=None):
+        """Operates on suggestions of the given English entry"""
         if pk:
             try:
                 query = models.EnglishEntry.objects.get(id=pk)
@@ -135,10 +147,20 @@ class EnglishEntry(ModelViewSet):
                 return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    #@extend_schema(
+    #    parameters=[
+    #        OpenApiParameter(
+    #            name='suggestion_id',
+    #            description='A unique integer value identifying this suggestion.',
+    #            required=True, type=int)
+    #    ]
+    #)
     @action(detail=True, methods=['put', 'delete'],
             serializer_class=serializers.SuggestionSerializer,
-            url_path='suggestions/(?P<suggestion_id>[^/.]+)')
+            url_path='suggestions/(?P<suggestion_id>[^/.]+)'
+            )
     def suggestion(self, request: Request, pk=None, suggestion_id=None):
+        """Operates on suggestions of the given English entry"""
         if pk:
             try:
                 query = models.EnglishEntry.objects.get(id=pk)
@@ -166,11 +188,13 @@ class Translation(ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'put']
 
     def list(self, request: Request, *args, **kwargs):
+        """Lists all Slovene entries"""
         queryset = models.Translation.objects.all().order_by('translation')
         serializer = serializers.TranslationSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request: Request, *args, **kwargs):
+        """Inserts a new Slovene entry in the database"""
         serializer = serializers.TranslationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -178,6 +202,7 @@ class Translation(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request: Request, *args, **kwargs):
+        """Updates the specified Slovene entry with provided information"""
         try:
             object_id = self.kwargs.get('pk')
             query = models.Translation.objects.get(id=object_id)
@@ -190,6 +215,7 @@ class Translation(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def retrieve(self, request: Request, *args, **kwargs):
+        """Returns the specified Slovene entry"""
         object_id = self.kwargs.get('pk')
         try:
             query = models.Translation.objects.get(id=object_id)
@@ -199,6 +225,7 @@ class Translation(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request: Request, *args, **kwargs):
+        """Deletes the specified Slovene entry from the database"""
         object_id = self.kwargs.get('pk')
         try:
             query = models.Translation.objects.get(id=object_id)

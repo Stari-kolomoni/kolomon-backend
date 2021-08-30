@@ -62,6 +62,13 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'SCHEMA_PATH_PREFIX': r'/api/',
+    'SWAGGER_UI_SETTINGS': {
+        'syntaxHighlight.theme': 'obsidian',
+        'deepLinking': True,
+    },
+    'TITLE': 'Kolomoni API',
+    'DESCRIPTION': 'A list of spells to retrieve forbidden knowledge from the pits of The Database.',
+    'VERSION': '1.0.0',
 }
 
 # Docs: https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
