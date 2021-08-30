@@ -5,7 +5,7 @@ $BaseDir = Join-Path $PSScriptRoot ".." -Resolve
 $DatabaseDir = Join-Path $BaseDir "database"
 Write-ScriptLine -Name "Script" -Content "Database dir will be: $DatabaseDir"
 
-$PostgresBinaryDir = Get-PostgresBinaryDir -BaseDir $BaseDir
+$PostgresPgctlBinary = Get-PostgresPgctlBinary -BaseDir $BaseDir
 
 
 If (Test-Path $DatabaseDir -PathType Container) {
@@ -15,6 +15,6 @@ If (Test-Path $DatabaseDir -PathType Container) {
 }
 
 Write-ScriptLine -Name "Script" -Content "Initializing PostgreSQL database"
-Invoke-Expression "$PostgresBinaryDir/initdb.exe -D $DatabaseDir"
+Invoke-Expression "$PostgresPgctlBinary init -D $DatabaseDir"
 Write-ScriptLine -Name "Script" -Content "PostgreSQL database initialized"
 Write-ScriptLine -Name "Script" -Content "To run the database, use the postgres-start.ps1 script"

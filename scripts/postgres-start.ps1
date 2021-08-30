@@ -3,7 +3,7 @@ Write-Header -Title "PostgreSQL start script"
 
 $BaseDir = Join-Path $PSScriptRoot ".." -Resolve
 $DatabaseDir = Join-Path $BaseDir "database"
-$PostgresBinaryDir = Get-PostgresBinaryDir -BaseDir $BaseDir
+$PostgresPgctlBinary = Get-PostgresPgctlBinary -BaseDir $BaseDir
 
 If (-not (Test-Path $DatabaseDir -PathType Container)) {
     Write-Host -ForegroundColor Red "It seems like there is no database at `"$DatabaseDir`""
@@ -12,5 +12,5 @@ If (-not (Test-Path $DatabaseDir -PathType Container)) {
 }
 
 Write-ScriptLine -Name "Script" -Content "Starting PostgreSQL in background (using pg_ctl start)"
-Invoke-Expression "$PostgresBinaryDir/pg_ctl.exe start -D $DatabaseDir -l db.log"
+Invoke-Expression "$PostgresPgctlBinary start -D $DatabaseDir -l db.log"
 Write-ScriptLine -Name "Script" -Content "PostgreSQL started."
