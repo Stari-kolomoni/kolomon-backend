@@ -30,16 +30,16 @@ The API urls are located in the ``api.py`` file.
 
 |HTTP request | Path  | Description | Parameters |
 --- | --- | --- | ---
-|GET|/word/english/{id}|Returns the information on the specified English entry| full: boolean <br> &#160;&#160;True: all info <br> &#160;&#160;False: only basics |
-|POST|/word/english|Adds a new English entry|  |
-|PATCH|/word/english/{id}|Edits the specified English entry||
-|DELETE|/word/english/{id}|Deletes the specified English entry||
-|GET|/word/english/all|Returns the list of all English entries||
-|GET|/word/english/recent|Returns the list of recent English entries|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created|
-|GET|/word/english/search|Searches through the English entries|search_term: str|
-|GET|/word/english/{id}/suggestions|Returns all suggestions for the given entry||
-|POST|/word/english/{id}/suggestions|Adds a new suggestions for the given entry||
-|PATCH|/word/english/{id}/suggestions/{id}|Edits the specified suggestion||
+|GET|/api/english/{id}|Returns the information on the specified English entry| full: boolean <br> &#160;&#160;True: all info <br> &#160;&#160;False: only basics |
+|POST|/api/english|Adds a new English entry|  |
+|PUT|/api/english/{id}|Edits the specified English entry||
+|DELETE|/api/english/{id}|Deletes the specified English entry||
+|GET|/api/english|Returns the list of all English entries||
+|GET|/api/english/recent|Returns the list of recent English entries|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created|
+|GET|/api/english/search|Searches through the English entries|search_term: str|
+|GET|/api/english/{id}/suggestions|Returns all suggestions for the given entry||
+|POST|/api/english/{id}/suggestions|Adds a new suggestions for the given entry||
+|PUT|/api/english/{id}/suggestions/{id}|Edits the specified suggestion||
 |DELETE|/word/english/{id}/suggestions/{id}|Deletes the specified suggestion||
 |GET|/word/slovene/{id}|Returns the information about specified Slovene entry||
 |POST|/word/slovene|Add a new Slovene translation||

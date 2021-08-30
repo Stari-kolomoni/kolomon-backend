@@ -9,6 +9,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'password')
 
 
+class GenderVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.GenderVariant
+        fields = '__all__'
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category

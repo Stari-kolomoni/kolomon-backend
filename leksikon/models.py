@@ -45,6 +45,8 @@ class Translation(models.Model):
     separate_gender_form = models.BooleanField()
     description = models.TextField()
     type = models.CharField(max_length=100)
+    # I do not approve of this
+    female_form = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -72,6 +74,21 @@ class EnglishEntry(models.Model):
         return self.entry
 
 
+class RelatedEntry(models.Model):
+    # TODO: Source and related entry are stupid names. Fix to imply symmetry of relation.
+    source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_source')
+    related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_related')
+    comment = models.TextField()
+
+    class Meta:
+        verbose_name_plural = "Related entries"
+
+    def __str__(self):
+        return str(self.source_entry) + " - " + str(self.related_entry)
+
+
+# These are useless now because of the stupid "female_form" attribute
+
 class Gender(models.Model):
     gender = models.CharField(max_length=50)
     # An abbreviation for gender (eg. M, F, N...)
@@ -89,16 +106,3 @@ class GenderVariant(models.Model):
 
     def __str__(self):
         return self.translation
-
-
-class RelatedEntry(models.Model):
-    # TODO: Source and related entry are stupid names. Fix to imply symmetry of relation.
-    source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_source')
-    related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_related')
-    comment = models.TextField()
-
-    class Meta:
-        verbose_name_plural = "Related entries"
-
-    def __str__(self):
-        return str(self.source_entry) + " - " + str(self.related_entry)

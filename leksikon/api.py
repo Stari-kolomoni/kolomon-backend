@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'categories', views.Category, basename='category')
 router.register(r'english', views.EnglishEntry, basename='english')
+router.register(r'slovene', views.Translation, basename='slovene')
 
 # All urls that start with "api/"
 urlpatterns = [
