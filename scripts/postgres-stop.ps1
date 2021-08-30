@@ -3,7 +3,9 @@ Write-Header -Title "PostgreSQL stop script"
 
 $BaseDir = Join-Path $PSScriptRoot ".." -Resolve
 $DatabaseDir = Join-Path $BaseDir "database"
-$PostgresPgctlBinary = Get-PostgresPgctlBinary -BaseDir $BaseDir
+
+$PostgresBinary = Get-PostgresBinary -BaseDir $BaseDir -Binary "pg_ctl.exe"
+Write-ScriptLine -Name "Script" -Content "Using binary: `"$PostgresBinary`""
 
 If (-not (Test-Path $DatabaseDir -PathType Container)) {
     Write-Host -ForegroundColor Red "It seems like there is no database at `"$DatabaseDir`""
@@ -12,5 +14,5 @@ If (-not (Test-Path $DatabaseDir -PathType Container)) {
 }
 
 Write-ScriptLine -Name "Script" -Content "Stopping PostgreSQL (using pg_ctl stop)"
-Invoke-Expression "$PostgresPgctlBinary stop -D $DatabaseDir"
+Invoke-Expression "$PostgresBinary stop -D $DatabaseDir"
 Write-ScriptLine -Name "Script" -Content "PostgreSQL server stopped"

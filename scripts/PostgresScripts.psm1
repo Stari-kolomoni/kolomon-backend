@@ -42,7 +42,7 @@ function Write-ScriptLine {
     Write-Host "$Content"
 }
 
-function Get-PostgresPgctlBinary {
+function Get-PostgresBinary {
     <#
      # This function will attempt to find the postgres binaries directory and pg_ctl.exe
      # It will first look in the base directory for a folder named pgsql (this is the portable binaries folder).
@@ -52,22 +52,25 @@ function Get-PostgresPgctlBinary {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true)]
-        [String] $BaseDir
+        [String] $BaseDir,
+
+        [Parameter(Mandatory=$true)]
+        [String] $Binary
     )
 
-    $LocalPgsqlBinary = Join-Path $BaseDir "pgsql" "bin" "pg_ctl.exe"
+    $LocalPgsqlBinary = Join-Path $BaseDir "pgsql" "bin" $Binary
 
     If (-not (Test-Path $LocalPgsqlBinary -PathType Leaf)) {
         # Check for pg_ctl in path first
-        If (Get-Command "pg_ctl.exe" -ErrorAction SilentlyContinue) {
-            $PgCtl = Get-Command "pg_ctl.exe"
+        If (Get-Command $Binary -ErrorAction SilentlyContinue) {
+            $PgCtl = Get-Command $Binary
             $PgCtl.Source
         } Else {
             # If pg_ctl could not be found, prompt the user to select their binaries folder.
             Write-Host -ForegroundColor Red "It seems you don't have PostgreSQL binaries downloaded locally."
-            Write-Host "This script expected pg_ctl.exe to be in `"$LocalPgsqlBinary`", which you can get from the binaries zip from the official website."
+            Write-Host "This script expected $Binary to be in `"$LocalPgsqlBinary`", which you can get from the binaries zip from the official website."
 
-            Write-Host -ForegroundColor Blue "Please pick the folder in which PostgreSQL binaries reside (most importantly pg_ctl.exe)"
+            Write-Host -ForegroundColor Blue "Please pick the folder in which PostgreSQL binaries reside"
 
             # Load and show the folder picker
             Add-Type -AssemblyName System.Windows.Forms
@@ -83,10 +86,10 @@ function Get-PostgresPgctlBinary {
             Write-Host -ForegroundColor Blue "Selected: `"$( $FolderBrowser.SelectedPath )`""
             Write-Host
 
-            $ChosenPgsqlBinary = Join-Path $FolderBrowser.SelectedPath "pg_ctl.exe"
+            $ChosenPgsqlBinary = Join-Path $FolderBrowser.SelectedPath $Binary
             if (-not(Test-Path $ChosenPgsqlBinary -PathType Leaf))
             {
-                Write-Host -ForegroundColor Red "The chosen folder does not contain pg_ctl.exe, exiting."
+                Write-Host -ForegroundColor Red "The chosen folder does not contain $Binary, exiting."
                 exit 1
             }
 
