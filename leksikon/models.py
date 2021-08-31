@@ -1,9 +1,16 @@
 from django.db import models
 
+
+class BaseModel(models.Model):
+    objects = models.Manager()
+
+    class Meta:
+        abstract = True
+
 # *********** MAIN DATA TABLES ************ #
 
 
-class Category(models.Model):
+class Category(BaseModel):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
@@ -14,14 +21,14 @@ class Category(models.Model):
         return self.name
 
 
-class TranslationState(models.Model):
+class TranslationState(BaseModel):
     state = models.CharField(max_length=50)
 
     def __str__(self):
         return self.state
 
 
-class Link(models.Model):
+class Link(BaseModel):
     title = models.CharField(max_length=100)
     link = models.CharField(max_length=100)
 
@@ -29,7 +36,7 @@ class Link(models.Model):
         return self.title
 
 
-class Suggestion(models.Model):
+class Suggestion(BaseModel):
     translation = models.CharField(max_length=100)
     separate_gender_form = models.BooleanField()
     description = models.TextField()
@@ -40,7 +47,7 @@ class Suggestion(models.Model):
         return self.translation
 
 
-class Translation(models.Model):
+class Translation(BaseModel):
     translation = models.CharField(max_length=100)
     separate_gender_form = models.BooleanField()
     description = models.TextField()
@@ -54,7 +61,7 @@ class Translation(models.Model):
         return self.translation
 
 
-class EnglishEntry(models.Model):
+class EnglishEntry(BaseModel):
     entry = models.CharField(max_length=100)
     use_case = models.TextField()
     # NOTE: translation_state can be None, always check this value
@@ -74,7 +81,7 @@ class EnglishEntry(models.Model):
         return self.entry
 
 
-class RelatedEntry(models.Model):
+class RelatedEntry(BaseModel):
     # TODO: Source and related entry are stupid names. Fix to imply symmetry of relation.
     source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_source')
     related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_related')
@@ -89,7 +96,7 @@ class RelatedEntry(models.Model):
 
 # These are useless now because of the stupid "female_form" attribute
 
-class Gender(models.Model):
+class Gender(BaseModel):
     gender = models.CharField(max_length=50)
     # An abbreviation for gender (eg. M, F, N...)
     abbr = models.CharField(max_length=10)
@@ -98,7 +105,7 @@ class Gender(models.Model):
         return self.gender
 
 
-class GenderVariant(models.Model):
+class GenderVariant(BaseModel):
     translation = models.ForeignKey(Translation, on_delete=models.CASCADE)
     # TODO: Is this a good idea?
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE)

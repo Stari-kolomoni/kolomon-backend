@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import status
 from rest_framework.decorators import api_view, action
@@ -124,6 +125,35 @@ class EnglishEntry(ModelViewSet):
         except models.EnglishEntry.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='search_term',
+                description='A search term',
+                required=True, type=str
+            )
+        ]
+    )
+    @action(detail=False, methods=['get'],
+            serializer_class=serializers.EnglishEntrySerializer)
+    def search(self, request: Request, *args, **kwargs):
+        if 'search_term' in request.query_params:
+            # TODO: Add weights to the search
+            search_vector = SearchVector('entry',
+                                         'translation_comment',
+                                         'categories__name',
+                                         'categories__description',
+                                         'links__title',
+                                         'links__link')
+            query = SearchQuery(request.query_params.get('search_term'))
+            results = models.EnglishEntry.objects.annotate(
+                rank=SearchRank(search_vector, query, cover_density=True)
+            ).filter(rank__gt=0).order_by('-rank')
+            serializer = serializers.EnglishEntrySerializer(results, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['get', 'post'],
             serializer_class=serializers.SuggestionSerializer)
     def suggestions(self, request: Request, pk=None):
@@ -163,6 +193,7 @@ class EnglishEntry(ModelViewSet):
         """Operates on suggestions of the given English entry"""
         if pk:
             try:
+                # This is here only to check if the entry still exists and prevent misuse
                 query = models.EnglishEntry.objects.get(id=pk)
                 try:
                     object_id = int(suggestion_id)
