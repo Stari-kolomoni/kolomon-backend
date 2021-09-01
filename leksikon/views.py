@@ -222,6 +222,7 @@ class EnglishEntry(ModelViewSet):
     @action(detail=False, methods=['get'],
             serializer_class=serializers.EnglishEntrySerializer)
     def recent(self, request: Request, *args, **kwargs):
+        """Lists all recent English entries based on their time of creation and/or modification"""
         count = 10
         if 'count' in request.query_params:
             count_request = request.query_params.get('count')

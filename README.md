@@ -35,7 +35,7 @@ The API urls are located in the ``api.py`` file.
 |GET|/api/english/{id}|Returns the information on the specified English entry| full: boolean <br> &#160;&#160;True: all info <br> &#160;&#160;False: only basics |
 |PUT|/api/english/{id}|Edits the specified English entry||
 |DELETE|/api/english/{id}|Deletes the specified English entry||
-|GET|/api/english/recent|Returns the list of recent English entries|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created|
+|GET|/api/english/recent|Returns the list of recent English entries (count specifies the maximum number of entries to return)|sort_by: str <br> &#160;&#160;"any": recently created or modified <br> &#160;&#160;"edits": recently modified <br> &#160;&#160;"created": recently created<br>count: int|
 |GET|/api/english/search|Searches through the English entries|search_term: str|
 |GET|/api/english/{id}/suggestions|Returns all suggestions for the given entry||
 |POST|/api/english/{id}/suggestions|Adds a new suggestion for the given entry||
