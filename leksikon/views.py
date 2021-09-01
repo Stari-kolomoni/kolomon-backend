@@ -177,14 +177,6 @@ class EnglishEntry(ModelViewSet):
                 return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    #@extend_schema(
-    #    parameters=[
-    #        OpenApiParameter(
-    #            name='suggestion_id',
-    #            description='A unique integer value identifying this suggestion.',
-    #            required=True, type=int)
-    #    ]
-    #)
     @action(detail=True, methods=['put', 'delete'],
             serializer_class=serializers.SuggestionSerializer,
             url_path='suggestions/(?P<suggestion_id>[^/.]+)'
@@ -193,7 +185,7 @@ class EnglishEntry(ModelViewSet):
         """Operates on suggestions of the given English entry"""
         if pk:
             try:
-                # This is here only to check if the entry still exists and prevent misuse
+                # This is here only to check if the English entry exists and prevent bad use
                 query = models.EnglishEntry.objects.get(id=pk)
                 try:
                     object_id = int(suggestion_id)
@@ -211,6 +203,42 @@ class EnglishEntry(ModelViewSet):
             except models.EnglishEntry.DoesNotExist:
                 return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='count',
+                description='Number of returned entries',
+                required=False, type=int
+            ),
+            OpenApiParameter(
+                name='order_by',
+                description='Which entries to return based on modification date. Accepts *any*, *edits*, *created*.'
+                            ' Defaults to *any*.',
+                required=False, type=str
+            )
+        ]
+    )
+    @action(detail=False, methods=['get'],
+            serializer_class=serializers.EnglishEntrySerializer)
+    def recent(self, request: Request, *args, **kwargs):
+        count = 10
+        if 'count' in request.query_params:
+            count_request = request.query_params.get('count')
+            if isinstance(count, int):
+                count = int(count_request)
+
+        order_type = ['-last_modified', '-created']
+        if 'order_by' in request.query_params:
+            order_by = request.query_params.get('order_by')
+            if order_by == 'edits':
+                order_type = ['-last_modified']
+            elif order_by == 'created':
+                order_type = ['-created']
+
+        query = models.EnglishEntry.objects.order_by(*order_type)[:count]
+        serializer = serializers.EnglishEntrySerializer(query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class Translation(ModelViewSet):
