@@ -4,9 +4,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'categories', views.Category, basename='category')
-router.register(r'english', views.EnglishEntry, basename='english')
-router.register(r'slovene', views.Translation, basename='slovene')
+router.register('^search', views.SearchViewSet, 'search')
 
 # All urls that start with "api/"
 urlpatterns = [

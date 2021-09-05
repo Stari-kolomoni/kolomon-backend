@@ -1,0 +1,54 @@
+CATEGORY
+{
+    "id": int,
+    "name": string,
+    "description": string
+}
+---------------------------------------
+LINK
+{
+    "id": int,
+    "title": string,
+    "link": string
+}
+---------------------------------------
+SUGGESTION
+{
+    "id": int,
+    "translation": string,
+    "separate_gender_form": boolean,
+    "description": string,
+    "created": date,
+    "last_modified": date
+}
+---------------------------------------
+TRANSLATION
+{
+    "id": int,
+    "translation": string,
+    "separate_gender_form": boolean,
+    "description": string,
+    "type": string,
+    "female_form": string | null,
+    "created": date,
+    "last_modified": date
+}
+----------------------------------------
+ENGLISH_ENTRY
+{
+    "id": int,
+    "category_list": [CATEGORY],
+    "link_list": [LINK],
+    "suggestion_list": [SUGGESTION],
+    "translation_list": [TRANSLATION],
+    "entry": string,
+    "use_case": string,
+    "translation_comment": string | null,
+    "created": date,
+    "last_modified": date,
+    "translation_state": int,
+    "categories": [id],
+    "links": [id],
+    "suggestions": [id],
+    "translations": [id]
+}
