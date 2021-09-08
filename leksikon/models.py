@@ -47,32 +47,34 @@ class Suggestion(BaseModel):
         return self.translation
 
 
-class Translation(BaseModel):
-    translation = models.CharField(max_length=100)
+class Word(BaseModel):
+    entry = models.CharField(max_length=100)
+    use_case = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+
+class SloveneEntry(Word):
     separate_gender_form = models.BooleanField()
-    description = models.TextField()
     type = models.CharField(max_length=100)
     # I do not approve of this
     female_form = models.CharField(max_length=100, null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Slovene entries"
 
     def __str__(self):
-        return self.translation
+        return self.entry
 
 
-class EnglishEntry(BaseModel):
-    entry = models.CharField(max_length=100)
-    use_case = models.TextField()
+class EnglishEntry(Word):
     # NOTE: translation_state can be None, always check this value
     translation_state = models.ForeignKey(TranslationState, on_delete=models.SET_NULL, null=True, blank=True)
     translation_comment = models.TextField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
     categories = models.ManyToManyField(Category, blank=True)
     links = models.ManyToManyField(Link, blank=True)
     suggestions = models.ManyToManyField(Suggestion, blank=True)
-    translations = models.ManyToManyField(Translation, blank=True)
+    translations = models.ManyToManyField(SloveneEntry, blank=True)
 
     class Meta:
         verbose_name_plural = "English entries"
@@ -83,8 +85,8 @@ class EnglishEntry(BaseModel):
 
 class RelatedEntry(BaseModel):
     # TODO: Source and related entry are stupid names. Fix to imply symmetry of relation.
-    source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_source')
-    related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='english_entry_related')
+    source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='entry_source')
+    related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='entry_related')
     comment = models.TextField()
 
     class Meta:
@@ -106,7 +108,7 @@ class Gender(BaseModel):
 
 
 class GenderVariant(BaseModel):
-    translation = models.ForeignKey(Translation, on_delete=models.CASCADE)
+    translation = models.ForeignKey(SloveneEntry, on_delete=models.CASCADE)
     # TODO: Is this a good idea?
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE)
     text = models.CharField(max_length=100)

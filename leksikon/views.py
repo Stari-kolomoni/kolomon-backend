@@ -20,13 +20,11 @@ class SearchViewSet(viewsets.ViewSet):
 
     @extend_schema(
         parameters=[OpenApiParameter(
-            name='query',
-            description='Search term',
+            name='query', description='Search term',
             required=True, type=str)
         ]
     )
-    @action(methods=['get'],
-            detail=False,
+    @action(methods=['get'], detail=False,
             serializer_class=serializers.QuickSearchSerializer)
     def quick(self, request: Request):
         """
@@ -36,46 +34,29 @@ class SearchViewSet(viewsets.ViewSet):
         if 'query' in request.query_params:
             search_query = request.query_params.get('query')
 
-        slovene_search_vector = SearchVector('translation',
-                                             'description',
-                                             'female_form')
-        english_search_vector = SearchVector('entry',
-                                             'use_case',
-                                             'translation_comment',
-                                             'categories__name',
-                                             'categories__description',
-                                             'links__title',
-                                             'links__link')
-
+        search_vector = SearchVector('entry',
+                                     'use_case')
         query = SearchQuery(search_query)
 
-        english_results = models.EnglishEntry.objects.annotate(
-            rank=SearchRank(english_search_vector, query, cover_density=True)
-        ).filter(rank__gt=0).order_by('-rank')
-        slovene_results = models.Translation.objects.annotate(
-            rank=SearchRank(slovene_search_vector, query, cover_density=True)
+        results = models.Word.objects.annotate(
+            rank=SearchRank(search_vector, query, cover_density=True)
         ).filter(rank__gt=0).order_by('-rank')
 
-        mixed_entries = []
-        for english_entry in english_results:
-            english_obj = objects.Word(english_entry)
-            mixed_entries.append(english_obj)
-        for slovene_entry in slovene_results:
-            slovene_obj = objects.Word(slovene_entry)
-            mixed_entries.append(slovene_obj)
+        word_list = []
+        for result in results:
+            word_obj = objects.Word(result)
+            word_list.append(word_obj)
 
-        serializer = serializers.QuickSearchSerializer(mixed_entries, many=True)
+        serializer = serializers.QuickSearchSerializer(word_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         parameters=[OpenApiParameter(
-            name='query',
-            description='Search term',
+            name='query', description='Search term',
             required=True, type=str)
         ]
     )
-    @action(methods=['get'],
-            detail=False,
+    @action(methods=['get'], detail=False,
             serializer_class=serializers.FullSearchSerializer)
     def full(self, request: Request):
         """
@@ -85,39 +66,60 @@ class SearchViewSet(viewsets.ViewSet):
         if 'query' in request.query_params:
             search_query = request.query_params.get('query')
 
-        # TODO: Optimize this!
-        slovene_search_vector = SearchVector('translation',
-                                             'description',
-                                             'female_form')
-        english_search_vector = SearchVector('entry',
-                                             'use_case',
-                                             'translation_comment',
-                                             'categories__name',
-                                             'categories__description',
-                                             'links__title',
-                                             'links__link',
-                                             'translations__translation',
-                                             'translations__description',
-                                             'translations__female_form')
-
+        search_vector = SearchVector('entry',
+                                     'use_case')
         query = SearchQuery(search_query)
 
-        english_results = models.EnglishEntry.objects.annotate(
-            rank=SearchRank(english_search_vector, query, cover_density=True)
-        ).filter(rank__gt=0).order_by('-rank')
-        slovene_results = models.Translation.objects.annotate(
-            rank=SearchRank(slovene_search_vector, query, cover_density=True)
+        results = models.Word.objects.annotate(
+            rank=SearchRank(search_vector, query)
         ).filter(rank__gt=0).order_by('-rank')
 
-        mixed_entries = []
-        for english_entry in english_results:
-            english_obj = objects.Pair(english_entry)
-            mixed_entries.append(english_obj)
-        for slovene_entry in slovene_results:
-            if not slovene_entry.englishentry_set.all():
-                slovene_obj = objects.Pair(slovene_entry)
-                mixed_entries.append(slovene_obj)
-        print(mixed_entries)
+        word_list = []
+        id_list = []
+        for result in results:
+            print(result.entry + " " + str(result.rank))
+            query_obj = objects.Pair(result)
+            if not query_obj.check_duplicates(id_list):
+                word_list.append(query_obj)
+                if query_obj.slovene:
+                    id_list.append(query_obj.slovene.id)
+                if query_obj.english:
+                    id_list.append(query_obj.english.id)
 
-        serializer = serializers.FullSearchSerializer(mixed_entries, many=True)
+        serializer = serializers.FullSearchSerializer(word_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class OrphanViewSet(viewsets.ViewSet):
+    serializer_class = serializers.OrphanSerializer
+
+    @extend_schema(
+        parameters=[OpenApiParameter(
+            name='count', description='Max number of returned elements',
+            required=False, type=int
+        ), OpenApiParameter(
+            name='order_by', description='The way entries should be ordered',
+            required=False, type=str
+        )]
+    )
+    def list(self, request: Request):
+        count = 100
+        order_by = ''
+        if 'count' in request.query_params:
+            count = int(request.query_params.get('count'))
+        if 'order_by' in request.query_params:
+            order_by = request.query_params.get('order_by')
+
+        if order_by == 'alphabetical':
+            orphans = models.Word.objects.filter(englishentry__translations__isnull=True,
+                                                 sloveneentry__englishentry__isnull=True).order_by('entry')[:count]
+        else:
+            orphans = models.Word.objects.filter(englishentry__translations__isnull=True,
+                                                 sloveneentry__englishentry__isnull=True)[:count]
+        word_list = []
+        for orphan in orphans:
+            orphan_obj = objects.Word(orphan)
+            word_list.append(orphan_obj)
+        serializer = serializers.OrphanSerializer(word_list, many=True)
+
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('^search', views.SearchViewSet, 'search')
+router.register('^orphans', views.OrphanViewSet, 'orphans')
 
 # All urls that start with "api/"
 urlpatterns = [

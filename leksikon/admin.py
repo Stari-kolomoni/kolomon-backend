@@ -6,6 +6,6 @@ model_set = (models.Gender, models.GenderVariant,
              models.EnglishEntry, models.RelatedEntry,
              models.Category, models.Link,
              models.Suggestion,
-             models.Translation)
+             models.SloveneEntry)
 
 admin.site.register(model_set)

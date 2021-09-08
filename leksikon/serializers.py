@@ -21,3 +21,6 @@ class FullSearchSerializer(serializers.Serializer):
     english = EntryBasicSerializer(allow_null=True)
     slovene = EntryBasicSerializer(allow_null=True)
 
+
+class OrphanSerializer(EntryBasicSerializer):
+    language = serializers.CharField(max_length=10)
