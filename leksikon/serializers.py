@@ -24,3 +24,9 @@ class FullSearchSerializer(serializers.Serializer):
 
 class OrphanSerializer(EntryBasicSerializer):
     language = serializers.CharField(max_length=10)
+
+
+class EnglishSerializer(EntryBasicSerializer):
+    translation_state = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
+    edited_at = serializers.DateTimeField()

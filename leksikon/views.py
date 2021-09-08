@@ -42,11 +42,7 @@ class SearchViewSet(viewsets.ViewSet):
             rank=SearchRank(search_vector, query, cover_density=True)
         ).filter(rank__gt=0).order_by('-rank')
 
-        word_list = []
-        for result in results:
-            word_obj = objects.Word(result)
-            word_list.append(word_obj)
-
+        word_list = objects.Word.object_list(results)
         serializer = serializers.QuickSearchSerializer(word_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -74,17 +70,7 @@ class SearchViewSet(viewsets.ViewSet):
             rank=SearchRank(search_vector, query)
         ).filter(rank__gt=0).order_by('-rank')
 
-        word_list = []
-        id_list = []
-        for result in results:
-            print(result.entry + " " + str(result.rank))
-            query_obj = objects.Pair(result)
-            if not query_obj.check_duplicates(id_list):
-                word_list.append(query_obj)
-                if query_obj.slovene:
-                    id_list.append(query_obj.slovene.id)
-                if query_obj.english:
-                    id_list.append(query_obj.english.id)
+        word_list = objects.Pair.object_list(results)
 
         serializer = serializers.FullSearchSerializer(word_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -103,6 +89,9 @@ class OrphanViewSet(viewsets.ViewSet):
         )]
     )
     def list(self, request: Request):
+        """
+        Request a list of english/slovene words that are missing their counterparts.
+        """
         count = 100
         order_by = ''
         if 'count' in request.query_params:
@@ -122,4 +111,14 @@ class OrphanViewSet(viewsets.ViewSet):
             word_list.append(orphan_obj)
         serializer = serializers.OrphanSerializer(word_list, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class EnglishViewSet(viewsets.ViewSet):
+    serializer_class = serializers.EnglishSerializer
+
+    def list(self, request: Request, *args, **kwargs):
+        queryset = models.EnglishEntry.objects.all()
+        object_list = objects.EnglishWord.object_list(queryset)
+        serializer = serializers.EnglishSerializer(object_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

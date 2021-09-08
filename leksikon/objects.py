@@ -19,6 +19,13 @@ class Word:
         elif hasattr(entry, 'sloveneentry') and isinstance(entry.sloveneentry, models.SloveneEntry):
             self.language = 'sl'
 
+    @staticmethod
+    def object_list(queryset):
+        object_list = []
+        for query in queryset:
+            object_list.append(Word(query))
+        return object_list
+
     def __str__(self):
         return self.word + " (" + str(self.id) + ")"
 
@@ -47,6 +54,20 @@ class Pair:
                 return True
         return False
 
+    @staticmethod
+    def object_list(queryset):
+        object_list = []
+        id_list = []
+        for query in queryset:
+            query_obj = Pair(query)
+            if not query_obj.check_duplicates(id_list):
+                object_list.append(query_obj)
+                if query_obj.slovene:
+                    id_list.append(query_obj.slovene.id)
+                if query_obj.english:
+                    id_list.append(query_obj.english.id)
+        return object_list
+
     def __str__(self):
         label = ""
         if self.slovene:
@@ -54,3 +75,21 @@ class Pair:
         if self.english:
             label += self.english.word
         return label
+
+
+class EnglishWord:
+
+    def __init__(self, entry: models.EnglishEntry):
+        self.id = entry.pk
+        self.word = entry.entry
+        self.description = entry.use_case
+        self.translation_state = entry.translation_state
+        self.created_at = entry.created
+        self.edited_at = entry.last_modified
+
+    @staticmethod
+    def object_list(queryset):
+        object_list = []
+        for query in queryset:
+            object_list.append(EnglishWord(query))
+        return object_list
