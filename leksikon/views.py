@@ -118,7 +118,37 @@ class EnglishViewSet(viewsets.ViewSet):
     serializer_class = serializers.EnglishSerializer
 
     def list(self, request: Request, *args, **kwargs):
+        """
+        Request a list of all english words in the dictionary
+        """
         queryset = models.EnglishEntry.objects.all()
         object_list = objects.EnglishWord.object_list(queryset)
         serializer = serializers.EnglishSerializer(object_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request: Request, *args, **kwargs):
+        """
+        Submit a new english word.
+        """
+        serializer = serializers.EnglishSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(request)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request: Request, *args, **kwargs):
+        """
+        Request information about a specific english word.
+        """
+        if 'pk' in kwargs:
+            instance_id = kwargs.get('pk')
+            try:
+                instance = models.EnglishEntry.objects.get(pk=instance_id)
+                english_obj = objects.ExtendedEnglishWord(instance)
+                serializer = serializers.ExtendedEnglishSerializer(english_obj)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except models.EnglishEntry.DoesNotExist:
+                return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+    

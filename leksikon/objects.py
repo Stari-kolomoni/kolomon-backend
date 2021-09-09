@@ -93,3 +93,87 @@ class EnglishWord:
         for query in queryset:
             object_list.append(EnglishWord(query))
         return object_list
+
+
+class Category:
+
+    def __init__(self, category):
+        self.id = category.pk
+        self.name = category.name
+        self.description = category.description
+
+    @staticmethod
+    def object_list(queryset):
+        category_list = []
+        for query in queryset:
+            category_list.append(Category(query))
+        return category_list
+
+
+class Link:
+
+    def __init__(self, link):
+        self.title = link.title
+        self.url = link.link
+
+    @staticmethod
+    def object_list(queryset):
+        link_list = []
+        for query in queryset:
+            link_list.append(Link(query))
+        return link_list
+
+
+class Suggestion:
+
+    def __init__(self, suggestion):
+        self.suggestion = suggestion.translation
+        self.separate_gender_form = suggestion.separate_gender_form
+        self.comment = suggestion.description
+        self.created_at = suggestion.created
+        self.edited_at = suggestion.last_modified
+
+    @staticmethod
+    def object_list(queryset):
+        suggestion_list = []
+        for query in queryset:
+            suggestion_list.append(Suggestion(query))
+        return suggestion_list
+
+
+class Relation:
+
+    def __init__(self, entry):
+        self.id = entry.pk
+        self.word = entry.entry
+
+    @staticmethod
+    def object_list(queryset):
+        relation_list = []
+        for query in queryset:
+            relation_list.append(Relation(query))
+        return relation_list
+
+
+class ExtendedEnglishWord(EnglishWord):
+
+    def __init__(self, entry):
+        super().__init__(entry)
+        self.translation_comment = entry.translation_comment
+        events = models.History.objects.filter(word=entry)
+        if events:
+            user = events[0].user
+            self.edited_by = user.pk
+        else:
+            self.edited_by = -1
+        self.categories = Category.object_list(entry.categories.all())
+        self.links = Link.object_list(entry.links.all())
+        self.suggestions = Suggestion.object_list(entry.suggestions.all())
+        self.related_words = Relation.object_list(entry.related.all())
+
+    @staticmethod
+    def object_list(queryset):
+        entry_list = []
+        for query in queryset:
+            entry_list.append(ExtendedEnglishWord(query))
+        return entry_list

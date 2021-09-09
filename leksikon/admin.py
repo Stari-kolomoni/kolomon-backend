@@ -3,9 +3,9 @@ from . import models
 
 model_set = (models.Gender, models.GenderVariant,
              models.TranslationState,
-             models.EnglishEntry, models.RelatedEntry,
              models.Category, models.Link,
              models.Suggestion,
-             models.SloveneEntry)
+             models.SloveneEntry,
+             models.EnglishEntry)
 
 admin.site.register(model_set)

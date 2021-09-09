@@ -1,4 +1,6 @@
+from django.contrib.auth.models import User
 from django.db import models
+
 
 
 class BaseModel(models.Model):
@@ -75,6 +77,7 @@ class EnglishEntry(Word):
     links = models.ManyToManyField(Link, blank=True)
     suggestions = models.ManyToManyField(Suggestion, blank=True)
     translations = models.ManyToManyField(SloveneEntry, blank=True)
+    related = models.ManyToManyField('EnglishEntry', blank=True)
 
     class Meta:
         verbose_name_plural = "English entries"
@@ -83,17 +86,11 @@ class EnglishEntry(Word):
         return self.entry
 
 
-class RelatedEntry(BaseModel):
-    # TODO: Source and related entry are stupid names. Fix to imply symmetry of relation.
-    source_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='entry_source')
-    related_entry = models.ForeignKey(EnglishEntry, on_delete=models.CASCADE, related_name='entry_related')
-    comment = models.TextField()
-
-    class Meta:
-        verbose_name_plural = "Related entries"
-
-    def __str__(self):
-        return str(self.source_entry) + " - " + str(self.related_entry)
+class History(BaseModel):
+    word = models.ForeignKey(Word, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    type = models.CharField(max_length=100)
+    date = models.DateTimeField()
 
 
 # These are useless now because of the stupid "female_form" attribute
