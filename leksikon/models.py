@@ -55,6 +55,18 @@ class Word(BaseModel):
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
+    def mark_event(self, event_type, user, date):
+        instance = History(word=self,
+                           user=user,
+                           type=event_type,
+                           date=date)
+        instance.save()
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, **kwargs):
+        super().save(force_insert, force_update, using, update_fields)
+        print("Hrani!")
+
 
 class SloveneEntry(Word):
     separate_gender_form = models.BooleanField()
@@ -88,7 +100,7 @@ class EnglishEntry(Word):
 
 class History(BaseModel):
     word = models.ForeignKey(Word, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     type = models.CharField(max_length=100)
     date = models.DateTimeField()
 

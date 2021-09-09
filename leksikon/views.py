@@ -12,7 +12,7 @@ from . import objects, serializers, models
 def ping(request: Request):
     ping_obj = objects.Pong()
     serializer = serializers.PingSerializer(ping_obj)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_418_IM_A_TEAPOT)
 
 
 class SearchViewSet(viewsets.ViewSet):
@@ -132,11 +132,12 @@ class EnglishViewSet(viewsets.ViewSet):
         """
         serializer = serializers.EnglishSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(request)
+            serializer.save(user=request.user)
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(responses=serializers.ExtendedEnglishSerializer)
     def retrieve(self, request: Request, *args, **kwargs):
         """
         Request information about a specific english word.
@@ -150,5 +151,35 @@ class EnglishViewSet(viewsets.ViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except models.EnglishEntry.DoesNotExist:
                 return Response({}, status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    
+    def partial_update(self, request: Request, *args, **kwargs):
+        """
+        Modify an english word or its description.
+        """
+        if 'pk' in kwargs:
+            instance_id = kwargs.get('pk')
+            try:
+                instance = models.EnglishEntry.objects.get(pk=instance_id)
+                serializer = serializers.EntryBasicSerializer(data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.update(instance, serializer.validated_data, user=request.user)
+                    return Response(status=status.HTTP_200_OK)
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            except models.EnglishEntry.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request: Request, *args, **kwargs):
+        """
+        Delete a specific english word entry.
+        """
+        if 'pk' in kwargs:
+            instance_id = kwargs.get('pk')
+            try:
+                instance = models.EnglishEntry.objects.get(pk=instance_id)
+                instance.delete()
+                return Response(status=status.HTTP_200_OK)
+            except models.EnglishEntry.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)

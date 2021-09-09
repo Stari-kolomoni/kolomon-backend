@@ -12,6 +12,13 @@ class EntryBasicSerializer(serializers.Serializer):
     word = serializers.CharField(max_length=100)
     description = serializers.CharField()
 
+    def update(self, instance, validated_data, **kwargs):
+        if 'word' in validated_data:
+            instance.entry = validated_data.get('word')
+        if 'description' in validated_data:
+            instance.use_case = validated_data.get('description')
+        instance.save()
+
 
 class QuickSearchSerializer(EntryBasicSerializer):
     language = serializers.CharField(max_length=10)
@@ -57,7 +64,7 @@ class EnglishSerializer(EntryBasicSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     edited_at = serializers.DateTimeField(read_only=True)
 
-    def save(self, request, **kwargs):
+    def save(self, **kwargs):
         entry = self.validated_data.get('word')
         use_case = self.validated_data.get('description')
         instance = models.EnglishEntry(
@@ -65,13 +72,6 @@ class EnglishSerializer(EntryBasicSerializer):
             use_case=use_case
         )
         instance.save()
-        event = models.History(
-            word=instance,
-            user=request.user,
-            type='created',
-            date=instance.created
-        )
-        event.save()
 
 
 class ExtendedEnglishSerializer(EnglishSerializer):
