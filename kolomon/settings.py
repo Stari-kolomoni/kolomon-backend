@@ -70,7 +70,7 @@ SPECTACULAR_SETTINGS = {
         'deepLinking': True,
     },
     'TITLE': 'Kolomoni API',
-    'DESCRIPTION': 'A list of spells to retrieve forbidden knowledge from the pits of The Database.',
+    'DESCRIPTION': 'A list of spells for acquiring forbidden knowledge from the dungeons of The Database.',
     'VERSION': '1.0.0',
 }
 

@@ -7,12 +7,25 @@ class Pong:
         self.message = "Pong!"
 
 
-class Word:
+class BasicWord:
 
     def __init__(self, entry):
         self.id = entry.pk
         self.word = entry.entry
         self.description = entry.use_case
+
+
+class ExtendedWord(BasicWord):
+    def __init__(self, entry):
+        super().__init__(entry)
+        self.created_at = entry.created
+        self.edited_at = entry.last_modified
+
+
+class Word(BasicWord):
+
+    def __init__(self, entry):
+        super().__init__(entry)
         self.language = ''
         if hasattr(entry, 'englishentry') and isinstance(entry.englishentry, models.EnglishEntry):
             self.language = 'en'
@@ -28,6 +41,53 @@ class Word:
 
     def __str__(self):
         return self.word + " (" + str(self.id) + ")"
+
+
+class EnglishWord(ExtendedWord):
+
+    def __init__(self, entry):
+        super().__init__(entry)
+        self.translation_state = entry.translation_state
+
+    @staticmethod
+    def object_list(queryset):
+        object_list = []
+        for query in queryset:
+            object_list.append(EnglishWord(query))
+        return object_list
+
+
+class ExtendedEnglishWord(EnglishWord):
+
+    def __init__(self, entry):
+        super().__init__(entry)
+        self.translation_comment = entry.translation_comment
+        events = models.History.objects.filter(word=entry)
+        if events:
+            user = events[0].user
+            self.edited_by = user.pk
+        else:
+            self.edited_by = -1
+        self.categories = Category.object_list(entry.categories.all())
+        self.links = Link.object_list(entry.links.all())
+        self.suggestions = Suggestion.object_list(entry.suggestions.all())
+        self.related_words = Relation.object_list(entry.related.all())
+
+    @staticmethod
+    def object_list(queryset):
+        entry_list = []
+        for query in queryset:
+            entry_list.append(ExtendedEnglishWord(query))
+        return entry_list
+
+
+class SloveneWord(ExtendedWord):
+
+    def __init__(self, entry):
+        super().__init__(entry)
+        self.word_female_form = entry.female_form
+        self.type = entry.type
+        self.related_words = Relation.object_list(entry.related.all())
 
 
 class Pair:
@@ -75,24 +135,6 @@ class Pair:
         if self.english:
             label += self.english.word
         return label
-
-
-class EnglishWord:
-
-    def __init__(self, entry: models.EnglishEntry):
-        self.id = entry.pk
-        self.word = entry.entry
-        self.description = entry.use_case
-        self.translation_state = entry.translation_state
-        self.created_at = entry.created
-        self.edited_at = entry.last_modified
-
-    @staticmethod
-    def object_list(queryset):
-        object_list = []
-        for query in queryset:
-            object_list.append(EnglishWord(query))
-        return object_list
 
 
 class Category:
@@ -145,7 +187,7 @@ class Relation:
 
     def __init__(self, entry):
         self.id = entry.pk
-        self.word = entry.entry
+        self.name = entry.entry
 
     @staticmethod
     def object_list(queryset):
@@ -153,27 +195,3 @@ class Relation:
         for query in queryset:
             relation_list.append(Relation(query))
         return relation_list
-
-
-class ExtendedEnglishWord(EnglishWord):
-
-    def __init__(self, entry):
-        super().__init__(entry)
-        self.translation_comment = entry.translation_comment
-        events = models.History.objects.filter(word=entry)
-        if events:
-            user = events[0].user
-            self.edited_by = user.pk
-        else:
-            self.edited_by = -1
-        self.categories = Category.object_list(entry.categories.all())
-        self.links = Link.object_list(entry.links.all())
-        self.suggestions = Suggestion.object_list(entry.suggestions.all())
-        self.related_words = Relation.object_list(entry.related.all())
-
-    @staticmethod
-    def object_list(queryset):
-        entry_list = []
-        for query in queryset:
-            entry_list.append(ExtendedEnglishWord(query))
-        return entry_list

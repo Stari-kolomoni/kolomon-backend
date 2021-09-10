@@ -52,6 +52,7 @@ class Suggestion(BaseModel):
 class Word(BaseModel):
     entry = models.CharField(max_length=100)
     use_case = models.TextField()
+    related = models.ManyToManyField('Word', blank=True)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -66,6 +67,10 @@ class Word(BaseModel):
              update_fields=None, **kwargs):
         super().save(force_insert, force_update, using, update_fields)
         print("Hrani!")
+
+    def delete(self, using=None, keep_parents=False, **kwargs):
+        super().delete()
+        print("Zbrise!")
 
 
 class SloveneEntry(Word):
@@ -89,7 +94,6 @@ class EnglishEntry(Word):
     links = models.ManyToManyField(Link, blank=True)
     suggestions = models.ManyToManyField(Suggestion, blank=True)
     translations = models.ManyToManyField(SloveneEntry, blank=True)
-    related = models.ManyToManyField('EnglishEntry', blank=True)
 
     class Meta:
         verbose_name_plural = "English entries"

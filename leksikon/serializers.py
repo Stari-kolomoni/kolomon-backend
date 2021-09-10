@@ -41,6 +41,20 @@ class SuggestionSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
     edited_at = serializers.DateTimeField(read_only=True)
 
+    def save(self, **kwargs):
+        translation = self.validated_data.get('suggestion')
+        gender_form = self.validated_data.get('separate_gender_form')
+        description = self.validated_data.get('comment')
+        instance = models.Suggestion(
+            translation=translation,
+            separate_gender_form=gender_form,
+            description=description
+        )
+        instance.save()
+        if 'entry' in kwargs:
+            entry = kwargs.get('entry')
+            entry.suggestions.add(instance)
+
 
 class CategorySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -56,7 +70,7 @@ class LinkSerializer(serializers.Serializer):
 
 class RelatedSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    word = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True, max_length=100)
 
 
 class EnglishSerializer(EntryBasicSerializer):
@@ -81,3 +95,11 @@ class ExtendedEnglishSerializer(EnglishSerializer):
     links = LinkSerializer(many=True)
     suggestions = SuggestionSerializer(many=True)
     related_words = RelatedSerializer(many=True)
+
+
+class SloveneSerializer(EntryBasicSerializer):
+    created_at = serializers.DateTimeField(read_only=True)
+    edited_at = serializers.DateTimeField(read_only=True)
+    word_female_form = serializers.CharField(max_length=100)
+    type = serializers.CharField(max_length=100)
+    related_word = RelatedSerializer(many=True)
