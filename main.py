@@ -4,6 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from users import models, users, auth
+from lexicon import lexicon
 from database import engine
 from dependencies import oauth2_scheme, oauth2_request_form, get_db
 
@@ -12,6 +13,7 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.include_router(users.router)
+app.include_router(lexicon.router)
 
 
 @app.get('/ping')

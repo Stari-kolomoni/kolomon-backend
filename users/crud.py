@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy.orm import Session
+
+from pagination import Pagination
 from users import models, schemas, auth
 
 
@@ -13,8 +15,8 @@ def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.username == username).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[models.User]:
-    return db.query(models.User).offset(skip).limit(limit).all()
+def get_users(db: Session, pagination: Pagination) -> List[models.User]:
+    return db.query(models.User).offset(pagination.skip).limit(pagination.limit).all()
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> Optional[models.User]:
@@ -33,7 +35,19 @@ def create_user(db: Session, user: schemas.UserCreate) -> Optional[models.User]:
     return db_user
 
 
-def delete_user(db: Session, user_id: int):
+def update_user(db: Session, user_id: int, user_update: schemas.UserPatch) -> Optional[models.User]:
+    user = get_user(db, user_id)
+    if user is None:
+        return user
+    if user_update.permissions:
+        user.permissions = user_update.permissions
+    if user_update.password:
+        user.hashed_password = auth.get_password_hash(user_update.password)
+    db.commit()
+    return user
+
+
+def delete_user(db: Session, user_id: int) -> bool:
     user = db.query(models.User).filter(models.User.id == user_id)
     if not user.first():
         return False

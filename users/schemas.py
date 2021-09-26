@@ -12,6 +12,11 @@ class UserCreate(UserBase):
     permissions: Optional[int] = 0
 
 
+class UserPatch(BaseModel):
+    password: Optional[str]
+    permissions: Optional[int]
+
+
 class User(UserBase):
     id: int
     permissions: int
