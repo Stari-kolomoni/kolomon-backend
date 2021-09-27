@@ -29,19 +29,18 @@ def create_category(db: Session, category: schemas.CategoryCreate) -> Optional[m
 def update_category(db: Session, category_id: int,
                     updated_category: schemas.CategoryPatch) -> Optional[models.Category]:
     category = get_category(db, category_id)
-    if category is None:
-        return category
-    if updated_category.name:
-        category.name = updated_category.name
-    if updated_category.description:
-        category.description = updated_category.description
-    db.commit()
+    if category is not None:
+        if updated_category.name:
+            category.name = updated_category.name
+        if updated_category.description:
+            category.description = updated_category.description
+        db.commit()
     return category
 
 
-def delete_category(db: Session, category_id: int):
-    category = db.query(models.Category).filter(models.Category.id == category_id)
-    if not category.first():
+def delete_category(db: Session, category_id: int) -> bool:
+    category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if not category:
         return False
     category.delete()
     db.commit()
