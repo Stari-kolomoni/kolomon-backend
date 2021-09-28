@@ -3,7 +3,6 @@ from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
-from .. import models
 from ..categories import schemas as category_schemas
 
 
@@ -37,10 +36,11 @@ class EnglishEntry(EnglishEntryBase):
 
 class EnglishEntryFull(EnglishEntry):
     translation_comment: Optional[str]
-    edited_by_id = Optional[int]
-    edited_by_name = Optional[str]
+    edited_by_id: Optional[int]
+    edited_by_name: Optional[str]
 
-    categories = List[category_schemas.Category]
+    categories: List[category_schemas.Category]
 
     class Config:
         arbitrary_types_allowed = True
+        orm_mode = True

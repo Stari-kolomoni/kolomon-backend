@@ -48,8 +48,8 @@ def update_user(db: Session, user_id: int, user_update: schemas.UserPatch) -> Op
 
 
 def delete_user(db: Session, user_id: int) -> bool:
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
+    user = db.query(models.User).filter(models.User.id == user_id)
+    if not user.first():
         return False
     user.delete()
     db.commit()

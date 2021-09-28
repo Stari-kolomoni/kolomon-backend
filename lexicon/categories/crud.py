@@ -39,8 +39,8 @@ def update_category(db: Session, category_id: int,
 
 
 def delete_category(db: Session, category_id: int) -> bool:
-    category = db.query(models.Category).filter(models.Category.id == category_id).first()
-    if not category:
+    category = db.query(models.Category).filter(models.Category.id == category_id)
+    if not category.first():
         return False
     category.delete()
     db.commit()

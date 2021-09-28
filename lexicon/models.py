@@ -9,18 +9,6 @@ category2english = Table(
     Column('english_id', ForeignKey('english_entries.id', ondelete="CASCADE"), primary_key=True)
 )
 
-link2english = Table(
-    'link2english', Base.metadata,
-    Column('link_id', ForeignKey('links.id', ondelete="CASCADE"), primary_key=True),
-    Column('english_id', ForeignKey('english_entries.id', ondelete="CASCADE"), primary_key=True)
-)
-
-suggestion2english = Table(
-    'suggestion2english', Base.metadata,
-    Column('suggestion_id', ForeignKey('suggested_translations.id', ondelete="CASCADE"), primary_key=True),
-    Column('english_id', ForeignKey('english_entries.id', ondelete="CASCADE"), primary_key=True)
-)
-
 english2english = Table(
     'entry2entry', Base.metadata,
     Column('left_id', ForeignKey('english_entries.id', ondelete="CASCADE"), primary_key=True),
@@ -51,8 +39,8 @@ class EnglishEntry(Base):
                            primaryjoin=id == english2english.c.left_id,
                            secondaryjoin=id == english2english.c.right_id)
     categories = relationship("Category", secondary=category2english)
-    links = relationship("Link", secondary=link2english)
-    suggested_translations = relationship("Suggestion", secondary=suggestion2english)
+    links = relationship("Link", back_populates="english_entry")
+    suggested_translations = relationship("Suggestion", back_populates="english_entry", lazy='dynamic')
 
     created = Column(DateTime(timezone=True), server_default=func.now())
     last_modified = Column(DateTime(timezone=True), onupdate=func.now())
@@ -85,6 +73,8 @@ class Suggestion(Base):
     lemma = Column(String)
     separate_gender_form = Column(Boolean)
     description = Column(String, nullable=True)
+    english_entry_id = Column(Integer, ForeignKey('english_entries.id', ondelete="CASCADE"))
+    english_entry = relationship("EnglishEntry", back_populates="suggested_translations")
 
     created = Column(DateTime(timezone=True), server_default=func.now())
     last_modified = Column(DateTime(timezone=True), onupdate=func.now())
@@ -111,3 +101,6 @@ class Link(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     title = Column(String)
     url = Column(String)
+
+    english_entry_id = Column(Integer, ForeignKey('english_entries.id', ondelete="CASCADE"))
+    english_entry = relationship("EnglishEntry", back_populates="links")

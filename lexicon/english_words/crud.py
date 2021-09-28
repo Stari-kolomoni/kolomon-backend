@@ -39,8 +39,8 @@ def update_english_entry(db: Session, entry_id: int,
 
 
 def delete_english_entry(db: Session, entry_id: int) -> bool:
-    entry = db.query(models.EnglishEntry).filter(models.EnglishEntry.id == entry_id).first()
-    if not entry:
+    entry = db.query(models.EnglishEntry).filter(models.EnglishEntry.id == entry_id)
+    if not entry.first():
         return False
     entry.delete()
     db.commit()
