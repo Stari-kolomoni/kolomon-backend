@@ -7,7 +7,7 @@ from dependencies import get_db, paginator
 from . import schemas, crud
 
 router = APIRouter(
-    prefix='/{english_id}/suggestions',
+    prefix='/english/{english_id}/suggestions',
     tags=['suggestions']
 )
 

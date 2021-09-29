@@ -5,14 +5,11 @@ from sqlalchemy.orm import Session
 
 from dependencies import get_db, paginator
 from . import schemas, crud
-from ..suggestions import router as suggestion_router
 
 router = APIRouter(
     prefix='/english',
     tags=['english_entries']
 )
-
-router.include_router(suggestion_router.router)
 
 
 @router.get('/', response_model=List[schemas.EnglishEntry])

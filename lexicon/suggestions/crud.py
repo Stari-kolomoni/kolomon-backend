@@ -48,7 +48,7 @@ def update_suggestion(db: Session, updated_suggestion: schemas.SuggestionPatch, 
         if updated_suggestion.description:
             suggestion.description = updated_suggestion.description
         if updated_suggestion.separate_gender_form is not None:
-            suggestion.description = updated_suggestion.separate_gender_form
+            suggestion.separate_gender_form = updated_suggestion.separate_gender_form
         db.commit()
     return suggestion
 

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -18,7 +18,8 @@ class SuggestionCreate(SuggestionBase):
 
 
 class SuggestionPatch(SuggestionBase):
-    english_entry_id: int = Field(alias="english_entry")
+    lemma: Optional[str] = Field(alias="suggestion")
+    description: Optional[str] = Field(alias="comment", default=None)
 
 
 class Suggestion(SuggestionBase):
