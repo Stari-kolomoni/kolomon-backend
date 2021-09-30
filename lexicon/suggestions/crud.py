@@ -9,10 +9,8 @@ from ..english_words import crud as english_crud
 
 
 def get_suggestion(db: Session, suggestion_id: int, english_id: int) -> Optional[models.Suggestion]:
-    english_entry = db.query(models.EnglishEntry).filter(models.EnglishEntry.id == english_id).first()
-    if english_entry is None:
-        return None
-    return english_entry.suggested_translations.filter(models.Suggestion.id == suggestion_id).first()
+    return db.query(models.Suggestion).filter(models.Suggestion.id == suggestion_id,
+                                              models.Suggestion.english_entry_id == english_id).first()
 
 
 def get_suggestions(db: Session, pagination: Pagination, english_id: int) -> List[models.Suggestion]:
@@ -54,9 +52,8 @@ def update_suggestion(db: Session, updated_suggestion: schemas.SuggestionPatch, 
 
 
 def delete_suggestion(db: Session, english_id: int, suggestion_id: int) -> bool:
-    english_entry = db.query(models.EnglishEntry).filter(models.EnglishEntry.id == english_id).first() \
-        .options(joinedload(models.EnglishEntry.suggested_translations))
-    suggestion = english_entry.suggested_translations.filter(models.Suggestion.id == suggestion_id)
+    suggestion = db.query(models.Suggestion).filter(models.Suggestion.id == suggestion_id,
+                                                    models.Suggestion.english_entry_id == english_id)
     if not suggestion.first():
         return False
     suggestion.delete()

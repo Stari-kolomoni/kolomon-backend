@@ -10,7 +10,7 @@ category2english = Table(
 )
 
 english2english = Table(
-    'entry2entry', Base.metadata,
+    'english2english', Base.metadata,
     Column('left_id', ForeignKey('english_entries.id', ondelete="CASCADE"), primary_key=True),
     Column('right_id', ForeignKey('english_entries.id', ondelete="CASCADE"), primary_key=True)
 )
