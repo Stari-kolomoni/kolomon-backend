@@ -55,7 +55,7 @@ class SloveneEntry(Base):
     description = Column(String, nullable=True)
 
     alternative_gender_form = Column(String, nullable=True)
-    grammatical_position = Column(String)
+    #grammatical_position = Column(String)
     related = relationship("SloveneEntry", secondary=slovene2slovene,
                            primaryjoin=id == slovene2slovene.c.left_id,
                            secondaryjoin=id == slovene2slovene.c.right_id)
