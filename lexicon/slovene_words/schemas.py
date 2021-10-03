@@ -22,6 +22,7 @@ class SloveneEntryPatch(SloveneEntryBase):
 
 
 class SloveneEntry(SloveneEntryBase):
+    id: int
     created: datetime = Field(alias="created_at")
     last_modified: datetime = Field(alias="edited_at", default=None)
 

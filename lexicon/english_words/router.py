@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from dependencies import get_db, paginator
 from . import schemas, crud
+from ..slovene_words import schemas as slovene_schemas
 
 router = APIRouter(
     prefix='/english',

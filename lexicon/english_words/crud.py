@@ -45,3 +45,11 @@ def delete_english_entry(db: Session, entry_id: int) -> bool:
     entry.delete()
     db.commit()
     return True
+
+
+def get_slovene_translation(db: Session, entry_id: int) -> Optional[models.SloveneEntry]:
+    english_entry = get_english_entry(db, entry_id)
+    if english_entry is not None:
+        return english_entry.translation
+    return english_entry
+
