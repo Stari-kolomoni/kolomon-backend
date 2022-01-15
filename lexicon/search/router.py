@@ -12,15 +12,15 @@ router = APIRouter(
 )
 
 
-@router.get('/quick')
+@router.get('/quick', response_model=List[schemas.QuickSearchResult])
 def quick_search(page: int = 0, term: str = "", db: Session = Depends(get_db)):
-    return {
-        "detail": "V delu."
-    }
+    pagination = paginator.paginate(page)
+    results = crud.get_search_quick(db, pagination, term)
+    return results
 
 
 @router.get('/full')
 def full_search(page: int = 0, term: str = "", db: Session = Depends(get_db)):
-    return {
-        "detail": "V delu."
-    }
+    pagination = paginator.paginate(page)
+    results = crud.get_search_full(db, pagination, term)
+    return results

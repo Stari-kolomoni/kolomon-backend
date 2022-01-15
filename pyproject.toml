@@ -13,6 +13,7 @@ SQLAlchemy = "^1.4.25"
 psycopg2 = "^2.9.1"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+sqlalchemy-views = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 

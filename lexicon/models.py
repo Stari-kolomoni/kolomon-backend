@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Integer, DateTime, func, ForeignKey, Table, Boolean
+from sqlalchemy import Column, String, Integer, DateTime, func, ForeignKey, Table, Boolean, Index, DDL, event
 from sqlalchemy.orm import relationship
 
 from database import Base
+from db.TsVector import TsVector
 
 category2english = Table(
     'category2english', Base.metadata,
@@ -45,6 +46,10 @@ class EnglishEntry(Base):
     created = Column(DateTime(timezone=True), server_default=func.now())
     last_modified = Column(DateTime(timezone=True), onupdate=func.now())
 
+    #tsvector = Column(TsVector)
+
+    #__table_args__ = (Index('tsvector_idx', 'tsvector', postgresql_using='gin'),)
+
 
 class SloveneEntry(Base):
     __tablename__ = "slovene_entries"
@@ -55,7 +60,6 @@ class SloveneEntry(Base):
     description = Column(String, nullable=True)
 
     alternative_gender_form = Column(String, nullable=True)
-    #grammatical_position = Column(String)
     related = relationship("SloveneEntry", secondary=slovene2slovene,
                            primaryjoin=id == slovene2slovene.c.left_id,
                            secondaryjoin=id == slovene2slovene.c.right_id)
@@ -104,3 +108,13 @@ class Link(Base):
 
     english_entry_id = Column(Integer, ForeignKey('english_entries.id', ondelete="CASCADE"))
     english_entry = relationship("EnglishEntry", back_populates="links")
+
+
+#trigger_snippet = DDL("""
+#CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE
+#ON english_entries
+#FOR EACH ROW EXECUTE PROCEDURE
+#tsvector_update_trigger(tsvector, 'pg_catalog.english', 'details')
+#""")
+
+#event.listen(EnglishEntry.__table__, 'after_create', trigger_snippet.execute_if(dialect='postgresql'))
