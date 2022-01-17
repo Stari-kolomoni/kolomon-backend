@@ -10,7 +10,6 @@ class Recent(BaseModel):
     time: datetime
     user_id: int
     user_name: str
-    pass
 
     class Config:
         orm_mode = True
@@ -25,4 +24,4 @@ class Orphans(BaseModel):
 
     class Config:
         orm_mode = True
-        #allow_population_by_field_name = True
+        allow_population_by_field_name = True

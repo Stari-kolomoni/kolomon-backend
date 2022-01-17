@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from pagination import Pagination
@@ -25,7 +26,9 @@ def get_orphans(db: Session, count: int, order: str) -> List[schemas.Recent]:
     if order == 'alphabetical':
         sql += "\nORDER BY lemma ASC"
 
-    return db.execute(sql, {"count": count}).all()
+    parsed_sql = text(sql)
+
+    return db.execute(parsed_sql, {"count": count}).all()
 
 
 def get_recent(db: Session, count: int, order: str) -> List[schemas.Recent]:
@@ -43,4 +46,6 @@ def get_recent(db: Session, count: int, order: str) -> List[schemas.Recent]:
 
     sql += "\nLIMIT :limit"
 
-    return db.execute(sql, {"limit": count}).all()
+    parsed_sql = text(sql)
+
+    return db.execute(parsed_sql, {"limit": count}).all()

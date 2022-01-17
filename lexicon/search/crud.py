@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import bindparam
+from sqlalchemy import bindparam, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
@@ -23,7 +23,7 @@ def get_search_quick(db: Session, pagination: Pagination, term: str) -> List[sch
 
 
 def get_search_full(db: Session, pagination: Pagination, term: str) -> List[schemas.FullSearchResult]:
-    sql = """
+    sql = text("""
         SELECT en.id AS en_id, en.lemma AS en_lemma, en.description AS en_description,
             sl.id AS sl_id, sl.lemma AS sl_lemma, sl.description AS sl_description
             FROM english_entries en
@@ -31,6 +31,6 @@ def get_search_full(db: Session, pagination: Pagination, term: str) -> List[sche
             WHERE en.lemma ILIKE :term OR en.description ILIKE :term
             OR sl.lemma ILIKE :term OR sl.description ILIKE :term
             LIMIT :limit OFFSET :offset
-    """
+    """)
     term = '%' + term + '%'
     return db.execute(sql, {"term": term, "limit": pagination.limit, "offset": pagination.skip}).all()

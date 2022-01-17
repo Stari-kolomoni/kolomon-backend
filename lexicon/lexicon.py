@@ -8,6 +8,7 @@ from .slovene_words import router as slovene_router
 from .translations import router as translation_router
 from .other import router as other_router
 from .search import router as search_router
+from .translation_states import router as trans_state_router
 
 router = APIRouter(
     prefix='/lex'
@@ -22,3 +23,4 @@ router.include_router(slovene_router.router)
 router.include_router(translation_router.router)
 router.include_router(other_router.router)
 router.include_router(search_router.router)
+router.include_router(trans_state_router.router)
