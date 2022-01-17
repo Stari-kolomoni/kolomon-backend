@@ -1,4 +1,6 @@
 from fastapi import Depends
+from pydantic import BaseModel
+from pydantic.main import Any
 
 from database import SessionLocal, engine
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -31,3 +33,21 @@ permissions = {
 # PAGINATION
 PAGE_DATA_SIZE = 50
 paginator = Paginator(PAGE_DATA_SIZE)
+
+
+# SWAGGER OPTIONS
+swagger_parameters = {
+    "syntaxHighlight.theme": "agate"
+}
+
+
+# API MESSAGE SCHEME
+class Message(BaseModel):
+    message: str
+
+
+# Custom error exception class
+class GeneralBackendException(Exception):
+    def __init__(self, code: int = 500, message: str = ""):
+        self.message = message
+        self.code = code

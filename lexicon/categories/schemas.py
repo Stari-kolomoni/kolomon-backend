@@ -8,10 +8,6 @@ class CategoryBase(BaseModel):
     description: Optional[str]
 
 
-class CategoryCreate(CategoryBase):
-    pass
-
-
 class CategoryPatch(CategoryBase):
     name: Optional[str]
 

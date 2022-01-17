@@ -1,17 +1,32 @@
 from datetime import timedelta
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from users import models, users, auth
 from lexicon import lexicon
 from database import engine
-from dependencies import oauth2_scheme, oauth2_request_form, get_db
+from dependencies import oauth2_scheme, oauth2_request_form, get_db, swagger_parameters, Message,\
+    GeneralBackendException
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(swagger_ui_parameters=swagger_parameters)
+
+
+# Add custom exception for general error handling
+@app.exception_handler(GeneralBackendException)
+async def not_found_exception_handler(request: Request, exc: GeneralBackendException):
+    return JSONResponse(
+        status_code=exc.code,
+        content={"message": exc.message}
+    )
+
 
 # Set up CORS rules to allow using the API on the frontend
 allowed_cors_origins = [
@@ -31,17 +46,19 @@ app.include_router(users.router)
 app.include_router(lexicon.router)
 
 
-@app.get('/ping')
+@app.get('/ping', response_model=Message, summary="Used to test server responsiveness")
 async def ping():
-    return {"message": "pong"}
+    msg = Message(message="Pong")
+    return msg
 
 
-@app.get('/check')
+@app.get('/check', response_model=Message, summary="Used to test authorization")
 async def check(token: str = Depends(oauth2_scheme)):
-    return {"message": "You are authorized."}
+    msg = Message(message="You are authorized")
+    return msg
 
 
-@app.post('/token', response_model=auth.Token)
+@app.post('/token', response_model=auth.Token, summary="Authorisation token retrieval")
 def login(form_data: oauth2_request_form = Depends(), db: Session = Depends(get_db)):
     user = auth.authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -59,3 +76,20 @@ def login(form_data: oauth2_request_form = Depends(), db: Session = Depends(get_
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+
+# Defining OpenAPI schema
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="Stari kolomoni",
+        version="1.0",
+        description="Fantazijska podatkovna baza",
+        routes=app.routes
+    )
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi

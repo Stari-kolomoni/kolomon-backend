@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from pagination import Pagination
@@ -15,7 +16,18 @@ def get_categories(db: Session, pagination: Pagination) -> List[models.Category]
     return db.query(models.Category).offset(pagination.skip).limit(pagination.limit).all()
 
 
-def create_category(db: Session, category: schemas.CategoryCreate) -> Optional[models.Category]:
+def check_category_existence(db: Session, category: schemas.CategoryBase) -> bool:
+    """Returns true, if category with these values exists"""
+    res = db.query(models.Category) \
+        .filter(and_(models.Category.name == category.name, models.Category.description == category.description)) \
+        .first()
+
+    if res is not None:
+        return True
+    return False
+
+
+def create_category(db: Session, category: schemas.CategoryBase) -> Optional[models.Category]:
     db_category = models.Category(
         name=category.name,
         description=category.description
