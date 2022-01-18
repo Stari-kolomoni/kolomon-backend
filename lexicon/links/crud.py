@@ -20,6 +20,11 @@ def get_links(db: Session, pagination: Pagination, english_id: int) -> List[mode
 def create_link(db: Session, english_id: int, link: schemas.LinkBase) -> Optional[models.Link]:
     if english_crud.get_english_entry(db, english_id) is None:
         return None
+    if link.url == "":
+        return None
+    if link.title == "":
+        link.title = link.url
+
     db_link = models.Link(
         title=link.title,
         url=link.url,
@@ -34,9 +39,9 @@ def create_link(db: Session, english_id: int, link: schemas.LinkBase) -> Optiona
 def update_link(db: Session, updated_link: schemas.LinkPatch, english_id: int, link_id: int) -> Optional[models.Link]:
     link = get_link(db, link_id, english_id)
     if link is not None:
-        if updated_link.url:
+        if updated_link.url and updated_link.url != "":
             link.url = updated_link.url
-        if updated_link.title:
+        if updated_link.title and updated_link.title != "":
             link.title = updated_link.title
         db.commit()
     return link
