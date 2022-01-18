@@ -16,6 +16,8 @@ def get_english_entry(db: Session, entry_id: int) -> Optional[models.EnglishEntr
 
 
 def create_english_entry(db: Session, entry: schemas.EnglishEntryCreate) -> Optional[models.Category]:
+    if entry.lemma == "":
+        return None
     db_entry = models.EnglishEntry(
         lemma=entry.lemma,
         description=entry.description
@@ -34,6 +36,7 @@ def update_english_entry(db: Session, entry_id: int,
             entry.lemma = updated_entry.lemma
         if updated_entry.description:
             entry.description = updated_entry.description
+        # TODO: Add user update!!!
         db.commit()
     return entry
 
@@ -47,9 +50,9 @@ def delete_english_entry(db: Session, entry_id: int) -> bool:
     return True
 
 
+# Don't know why this is here. Never used.
 def get_slovene_translation(db: Session, entry_id: int) -> Optional[models.SloveneEntry]:
     english_entry = get_english_entry(db, entry_id)
-    if english_entry is not None:
-        return english_entry.translation
-    return english_entry
-
+    if english_entry is None:
+        return None
+    return english_entry.translation

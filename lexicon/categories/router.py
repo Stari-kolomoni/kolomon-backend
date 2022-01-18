@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, paginator, GeneralBackendException, Message
@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get('/', response_model=List[schemas.Category])
+@router.get('/', response_model=List[schemas.Category], status_code=200)
 def read_categories(page: int = 0, db: Session = Depends(get_db)):
     pagination = paginator.paginate(page)
     categories = crud.get_categories(db, pagination)
@@ -57,6 +57,5 @@ def change_category(category_id: int, category: schemas.CategoryPatch, db: Sessi
 def delete_category(category_id: int, db: Session = Depends(get_db)):
     if not crud.delete_category(db, category_id):
         raise GeneralBackendException(404, "Category not found or deletable")
-    msg = Message()
-    msg.message = "Delete successful"
+    msg = Message(message="Delete successful")
     return msg

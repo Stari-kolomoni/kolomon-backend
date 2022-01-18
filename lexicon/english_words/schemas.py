@@ -14,12 +14,6 @@ class EnglishEntryBase(BaseModel):
         allow_population_by_field_name = True
 
 
-class EnglishEntryCreate(EnglishEntryBase):
-
-    class Config:
-        allow_population_by_field_name = True
-
-
 class EnglishEntryPatch(EnglishEntryBase):
     lemma: Optional[str] = Field(alias="word")
 
