@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from sqlalchemy import or_, text
 from sqlalchemy.orm import Session
 
 from pagination import Pagination
@@ -8,10 +9,12 @@ from . import schemas
 from ..english_words import crud as english_crud
 
 
-def get_related(db: Session, english_id: int):
-    entry = db.query(models.EnglishEntry).filter(models.EnglishEntry.id == english_id).first()
-    related = entry.related
-    return related
+def get_related(db: Session, english_id: int) -> List[schemas.Related]:
+    sql = """
+            
+        """
+    parsed_sql = text(sql)
+    return db.execute(parsed_sql, {"id": english_id}).all()
 
 
 def create_related(db: Session, english_id: int, related_id: int):
