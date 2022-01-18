@@ -17,7 +17,7 @@ def get_links(db: Session, pagination: Pagination, english_id: int) -> List[mode
         .offset(pagination.skip).limit(pagination.limit).all()
 
 
-def create_link(db: Session, english_id: int, link: schemas.LinkCreate) -> Optional[models.Link]:
+def create_link(db: Session, english_id: int, link: schemas.LinkBase) -> Optional[models.Link]:
     if english_crud.get_english_entry(db, english_id) is None:
         return None
     db_link = models.Link(

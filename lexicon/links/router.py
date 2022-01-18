@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from dependencies import get_db, paginator
+from dependencies import get_db, paginator, GeneralBackendException
 from . import schemas, crud
 
 router = APIRouter(
@@ -12,7 +12,8 @@ router = APIRouter(
 )
 
 
-@router.get('/', response_model=List[schemas.Link])
+@router.get('/', response_model=List[schemas.Link], status_code=200,
+            )
 def read_links(english_id: int, page: int = 0, db: Session = Depends(get_db)):
     pagination = paginator.paginate(page)
     suggestions = crud.get_links(db, pagination, english_id)
@@ -28,7 +29,7 @@ def read_link(english_id: int, link_id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/', response_model=schemas.Link)
-def create_link(english_id: int, link: schemas.LinkCreate, db: Session = Depends(get_db)):
+def create_link(english_id: int, link: schemas.LinkBase, db: Session = Depends(get_db)):
     db_link = crud.create_link(db, english_id, link)
     if db_link is None:
         raise HTTPException(status_code=400, detail="Neveljavni podatki")

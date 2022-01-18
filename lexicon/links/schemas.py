@@ -11,10 +11,6 @@ class LinkBase(BaseModel):
         allow_population_by_field_name = True
 
 
-class LinkCreate(LinkBase):
-    pass
-
-
 class LinkPatch(LinkBase):
     title: Optional[str]
     url: Optional[str]

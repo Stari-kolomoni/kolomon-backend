@@ -20,7 +20,8 @@ def read_english_entries(page: int = 0, db: Session = Depends(get_db)):
 
 
 @router.post('/', response_model=schemas.EnglishEntry, status_code=201,
-             responses={400: {"model": Message}})
+             responses={400: {"model": Message, "description": "Entry is not valid and/or could not be inserted - "
+                                                               "usually due to empty word field"}})
 def create_english_entry(entry: schemas.EnglishEntryBase, db: Session = Depends(get_db)):
     entry = crud.create_english_entry(db, entry)
     if entry is None:
@@ -29,7 +30,7 @@ def create_english_entry(entry: schemas.EnglishEntryBase, db: Session = Depends(
 
 
 @router.get('/{english_id}', response_model=schemas.EnglishEntryFull, status_code=200,
-            responses={404: {"model": Message}})
+            responses={404: {"model": Message, "description": "Entry could not be found"}})
 def read_english_entry(english_id: int, db: Session = Depends(get_db)):
     entry = crud.get_english_entry(db, english_id)
     if not entry:
@@ -38,7 +39,8 @@ def read_english_entry(english_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch('/{english_id}', response_model=schemas.EnglishEntry, status_code=200,
-              responses={404: {"model": Message}})
+              responses={404: {"model": Message, "description": "Entry could not be found "
+                                                                "and/or updating it was not possible"}})
 def change_english_entry(english_id: int, entry: schemas.EnglishEntryPatch, db: Session = Depends(get_db)):
     entry = crud.update_english_entry(db, english_id, entry)
     if not entry:
@@ -47,7 +49,8 @@ def change_english_entry(english_id: int, entry: schemas.EnglishEntryPatch, db: 
 
 
 @router.delete('/{english_id}', response_model=Message, status_code=200,
-               responses={404: {"model": Message}})
+               responses={404: {"model": Message, "description": "Entry could not be found "
+                                                                 "and/or deleting it was not possible"}})
 def delete_english_entry(english_id: int, db: Session = Depends(get_db)):
     if not crud.delete_english_entry(db, english_id):
         raise GeneralBackendException(404, "Entry not found")

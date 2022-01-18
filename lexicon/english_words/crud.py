@@ -15,7 +15,7 @@ def get_english_entry(db: Session, entry_id: int) -> Optional[models.EnglishEntr
     return db.query(models.EnglishEntry).filter(models.EnglishEntry.id == entry_id).first()
 
 
-def create_english_entry(db: Session, entry: schemas.EnglishEntryCreate) -> Optional[models.Category]:
+def create_english_entry(db: Session, entry: schemas.EnglishEntryBase) -> Optional[models.Category]:
     if entry.lemma == "":
         return None
     db_entry = models.EnglishEntry(
