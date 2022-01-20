@@ -8,6 +8,9 @@ authors = ["Grimpy <gorupgorazd@gmail.com>"]
 python = "^3.9"
 fastapi = "^0.72.0"
 uvicorn = {extras = ["standard"], version = "^0.17.0"}
+alembic = "^1.7.5"
+psycopg2 = "^2.9.3"
+databases = {extras = ["asyncpg"], version = "^0.5.4"}
 
 [tool.poetry.dev-dependencies]
 

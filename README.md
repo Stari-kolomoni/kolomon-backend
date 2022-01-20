@@ -6,7 +6,10 @@
 ![Bintray](https://img.shields.io/badge/Poetry-1.1.8-red)
 
 ## Project structure
-Haha we had Django but now I don't have time to update readme so here you go - TODO.
+
+## Database
+Configuration in `alembic.ini` - change `sqlalchemy.url` to whatever database you're running.
+
 
 ## License
 **TODO!!!**
