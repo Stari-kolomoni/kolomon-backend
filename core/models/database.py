@@ -1,28 +1,27 @@
 import databases
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import asyncpg
 
 
 # TODO: Change this in deployment
-user = "admin"
-password = ""
+user = "kolomon"
+password = "kolomon"
 server = "localhost:5432"
-db_name = "kolomonDB"
+db_name = "kolomon_db"
 DATABASE_URL = f"postgresql://{user}:{password}@{server}/{db_name}"
 
+# TODO: In production, add SSL = True!!!
 database = databases.Database(DATABASE_URL)
 
-engine = create_engine(DATABASE_URL)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# engine = create_engine(DATABASE_URL)
 
 Base = declarative_base()
 
 
-# Isn't used - would create the models (we use alembic for that)
-def init_db():
-    Base.metadata.create_all(bind=engine)
+# Isn't used - would create/rewrite relations in DB (we use alembic for that)
+# def init_db():
+#     Base.metadata.create_all(bind=engine)
 
 
 async def connect_db():
