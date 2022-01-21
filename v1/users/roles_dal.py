@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from sqlalchemy import update, delete
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
@@ -31,5 +33,30 @@ class RoleDAL:
         await self.db_session.refresh(db_role)
         return db_role
 
-    async def update_role(self, role: schema.RoleUpdate) -> schema.Role:
-        pass
+    async def update_role(self, role_data: schema.RoleUpdate, role_id: int) -> Optional[schema.Role]:
+        role: Optional[schema.Role] = await self.get_role(role_id)
+        if not role:
+            return None
+
+        query = update(model.Role).where(model.Role.id == role_id)
+        if role_data.name:
+            query = query.values(name=role_data.name)
+            role.name = role_data.name
+        if role_data.permissions:
+            query = query.values(permissions=role_data.permissions)
+            role.permissions = role_data.permissions
+        query.execution_options(synchronize_session='fetch')
+        changed: CursorResult = await self.db_session.execute(query)
+
+        if changed.rowcount == 0:
+            return None
+        return role
+
+    async def delete_role(self, role_id: int) -> bool:
+        query = delete(model.Role).where(model.Role.id == role_id)
+        query.execution_options(synchronize_session='fetch')
+        deleted: CursorResult = await self.db_session.execute(query)
+
+        if deleted.rowcount == 0:
+            return False
+        return True

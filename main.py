@@ -18,7 +18,10 @@ app = FastAPI()
 @app.exception_handler(GeneralBackendException)
 async def not_found_exception_handler(request: Request, exc: GeneralBackendException):
     msg = Message(message=exc.message)
-    return JSONResponse(msg.dict())
+    return JSONResponse(
+        status_code=exc.code,
+        content=msg.dict()
+    )
 
 
 @app.on_event('startup')

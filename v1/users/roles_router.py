@@ -41,13 +41,21 @@ async def read_role(role_id: int, db: RoleDAL = Depends(get_role_dal)):
     return result
 
 
-@router.patch("/{role_id}", response_model=Role, status_code=200,
-              responses={404: {}, 400: {}})
-async def update_role(role_id: int, role: RoleUpdate):
-    pass
+@router.put("/{role_id}", response_model=Role, status_code=200,
+            responses={404: {'model': mt.Message}})
+async def update_role(role: RoleUpdate, role_id: int, db: RoleDAL = Depends(get_role_dal)):
+    result = await db.update_role(role, role_id)
+    if not result:
+        raise GeneralBackendException(404, "Role not found")
+    return result
 
 
-@router.delete("/{role_id}", status_code=200,
-               responses={404: {}})
-async def remove_role(role_id: int):
-    pass
+@router.delete("/{role_id}", response_model=mt.Message, status_code=200,
+               responses={404: {'model': mt.Message}})
+async def remove_role(role_id: int, db: RoleDAL = Depends(get_role_dal)):
+    result = await db.delete_role(role_id)
+    if not result:
+        raise GeneralBackendException(404, "Role not found")
+    return mt.Message(
+        message="Delete successful"
+    )
