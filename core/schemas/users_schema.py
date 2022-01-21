@@ -1,6 +1,6 @@
 import datetime
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 
 class RoleBase(BaseModel):
@@ -10,6 +10,11 @@ class RoleBase(BaseModel):
 
 class RoleCreate(RoleBase):
     pass
+
+
+class RoleUpdate(BaseModel):
+    name: Optional[str]
+    permissions: Optional[int]
 
 
 class Role(RoleBase):
@@ -26,7 +31,18 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(alias='hashed_passcode')
-    roles: List[int] = []
+
+    @validator('username')
+    def username_must_not_be_empty(cls, v):
+        if not v:
+            raise ValueError("Username is empty")
+        return v
+
+    @validator('password')
+    def password_must_not_be_empty(cls, v):
+        if not v:
+            raise ValueError("Password is empty")
+        return v
 
 
 class User(UserBase):

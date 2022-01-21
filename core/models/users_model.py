@@ -1,5 +1,5 @@
 from sqlalchemy import (Column, Integer, String, DateTime,
-                        func, Boolean, SmallInteger, ForeignKey)
+                        func, Boolean, ForeignKey)
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -10,15 +10,16 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
-    display_name = Column(String)
+    display_name = Column(String, nullable=True)
     hashed_passcode = Column(String)
     joined = Column(DateTime, server_default=func.now())
     modified = Column(DateTime, server_onupdate=func.now(), nullable=True)
     last_active = Column(DateTime, server_default=func.now())
     is_active = Column(Boolean, default=False)
-
     roles = relationship('Role', secondary='role_to_user',
                          back_populates='users')
+
+    __mapper__args = {'eager_defaults': True}
 
 
 class Role(Base):
@@ -30,9 +31,13 @@ class Role(Base):
     users = relationship('User', secondary='role_to_user',
                          back_populates='roles')
 
+    __mapper__args = {'eager_defaults': True}
+
 
 class RoleToUser(Base):
     __tablename__ = "role_to_user"
 
     role_id = Column(Integer, ForeignKey('roles.id'), primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+
+    __mapper__args = {'eager_defaults': True}

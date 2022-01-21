@@ -1,7 +1,5 @@
-import databases
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-import asyncpg
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 
 # TODO: Change this in deployment
@@ -9,24 +7,27 @@ user = "kolomon"
 password = "kolomon"
 server = "localhost:5432"
 db_name = "kolomon_db"
-DATABASE_URL = f"postgresql://{user}:{password}@{server}/{db_name}"
+DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{server}/{db_name}"
 
 # TODO: In production, add SSL = True!!!
-database = databases.Database(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL, echo=True)
 
-# engine = create_engine(DATABASE_URL)
+async_session = sessionmaker(
+    engine, expire_on_commit=False, class_=AsyncSession
+)
 
 Base = declarative_base()
 
 
-# Isn't used - would create/rewrite relations in DB (we use alembic for that)
-# def init_db():
-#     Base.metadata.create_all(bind=engine)
-
-
 async def connect_db():
-    await database.connect()
+    return await engine.begin()
 
 
 async def disconnect_db():
-    await database.disconnect()
+    await engine.dispose()
+
+
+async def get_session():
+    async with async_session() as session:
+        async with session.begin():
+            yield session
