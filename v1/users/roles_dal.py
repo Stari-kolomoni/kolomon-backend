@@ -1,10 +1,11 @@
 from typing import List, Optional
 
-from sqlalchemy import update, delete
+from sqlalchemy import update, delete, func
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
+import core.models.database_queries as dbq
 import core.models.users_model as model
 import core.schemas.users_schema as schema
 
@@ -13,10 +14,18 @@ class RoleDAL:
     def __init__(self, db_session: Session):
         self.db_session = db_session
 
-    async def get_all_roles(self) -> List[schema.Role]:
-        stm = select(model.Role)
-        query = await self.db_session.execute(stm)
-        return query.scalars().all()
+    async def get_all_roles(self, params) -> (List[schema.Role], int):
+        count_stm = func.count(model.Role.id)
+        count_query = await self.db_session.execute(count_stm)
+        count: int = count_query.scalar()
+
+        content_stm = select(model.Role)
+        content_stm = dbq.paging_filter_sort(content_stm, params)
+
+        content_query = await self.db_session.execute(content_stm)
+        content = content_query.scalars().all()
+
+        return content, count
 
     async def get_role(self, role_id: int) -> Optional[schema.Role]:
         stm = select(model.Role).where(model.Role.id == role_id)

@@ -1,6 +1,8 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Request
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
 
 from core.exceptions import GeneralBackendException
 import core.message_types as mt
@@ -22,8 +24,22 @@ async def get_role_dal():
 
 
 @router.get("/", response_model=List[Role], status_code=200)
-async def read_roles(db: RoleDAL = Depends(get_role_dal)):
-    return await db.get_all_roles()
+async def read_all_roles(req: Request, db: RoleDAL = Depends(get_role_dal)):
+    query_parameters = req.query_params
+    paging = [
+        query_parameters.get('limit', 0),
+        query_parameters.get('skip', 0)
+    ]
+    params = {
+        'paging': paging
+    }
+
+    content, count = await db.get_all_roles(params)
+    json_content = jsonable_encoder(content)
+    headers = {"X-Total-Count": str(count)}
+    return JSONResponse(
+        content=json_content, headers=headers
+    )
 
 
 @router.post("/", response_model=Role, status_code=201,
