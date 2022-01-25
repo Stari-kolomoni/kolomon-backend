@@ -45,6 +45,11 @@ class UserCreate(UserBase):
         return v
 
 
+class UserUpdate(BaseModel):
+    display_name: Optional[str]
+    password: Optional[str]
+
+
 class User(UserBase):
     id: int
     is_active: bool
@@ -54,6 +59,6 @@ class User(UserBase):
 
 
 class UserDetail(User):
-    joined: datetime.datetime
-    modified: datetime.datetime
-    last_active: datetime.datetime
+    joined: Optional[datetime.datetime] = None
+    modified: Optional[datetime.datetime] = None
+    last_active: Optional[datetime.datetime] = None

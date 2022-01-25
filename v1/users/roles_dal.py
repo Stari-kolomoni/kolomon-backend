@@ -1,114 +1,76 @@
-from typing import List, Optional
+from typing import Optional, List
 
-from sqlalchemy import update, delete, func
+from sqlalchemy import update, func, delete
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 import core.models.users_model as um
 import core.schemas.users_schema as us
-from core.models.main_dal import MainDAL
+import core.models.dal_dependencies as dd
 
-"""class RoleDAL:
+
+class RoleDAL:
     def __init__(self, db_session: Session):
         self.db_session = db_session
 
-    async def get_all_roles(self, params) -> (List[schema.Role], int):
-        count_stm = func.count(model.Role.id)
+    async def get_roles(self, params) -> (List[us.Role], int):
+        count_stm = func.count(um.Role.id)
         count_query = await self.db_session.execute(count_stm)
         count: int = count_query.scalar()
 
-        content_stm = select(model.Role)
-        content_stm = dbq.paging_filter_sort(content_stm, params)
-
+        content_stm = select(um.Role.id, um.Role.name, um.Role.permissions)
+        content_stm = dd.paging_filter_sort(content_stm, params)
         content_query = await self.db_session.execute(content_stm)
-        content = content_query.scalars().all()
-
+        content = content_query.all()
         return content, count
 
-    async def get_role(self, role_id: int) -> Optional[schema.Role]:
-        stm = select(model.Role).where(model.Role.id == role_id)
-        query = await self.db_session.execute(stm)
-        return query.scalars().first()
-
-    async def create_role(self, role: schema.RoleCreate) -> schema.Role:
-        db_role = model.Role(
-            name=role.name,
-            permissions=role.permissions
-        )
-        self.db_session.add(db_role)
-        await self.db_session.flush()
-        await self.db_session.refresh(db_role)
-        return db_role
-
-    async def update_role(self, role_data: schema.RoleUpdate, role_id: int) -> Optional[schema.Role]:
-        role: Optional[schema.Role] = await self.get_role(role_id)
-        if not role:
-            return None
-
-        query = update(model.Role).where(model.Role.id == role_id)
-        if role_data.name:
-            query = query.values(name=role_data.name)
-            role.name = role_data.name
-        if role_data.permissions:
-            query = query.values(permissions=role_data.permissions)
-            role.permissions = role_data.permissions
-        query.execution_options(synchronize_session='fetch')
-        changed: CursorResult = await self.db_session.execute(query)
-
-        if changed.rowcount == 0:
-            return None
+    async def get_role(self, role_id: int) -> us.Role:
+        role = None
+        query = await self.db_session.get(um.Role, role_id)
+        if query:
+            role = us.Role(
+                id=query.id,
+                name=query.name,
+                permissions=query.permissions
+            )
         return role
 
     async def delete_role(self, role_id: int) -> bool:
-        query = delete(model.Role).where(model.Role.id == role_id)
+        query = delete(um.Role).where(um.Role.id == role_id)
         query.execution_options(synchronize_session='fetch')
-        deleted: CursorResult = await self.db_session.execute(query)
-
+        deleted = await self.db_session.execute(query)
         if deleted.rowcount == 0:
             return False
-        return True"""
+        return True
 
-
-class RoleDAL(MainDAL):
-    def __init__(self, db_session: Session):
-        model = um.Role
-        super().__init__(db_session, model)
-
-    async def get_roles(self, params):
-        return await self.get_all_objects(params)
-
-    async def get_role(self, role_id: int):
-        return await self.get_object('id', role_id)
-
-    async def delete_role(self, role_id: int):
-        return await self.delete_object('id', role_id)
-
-    async def create_role(self, role: us.RoleCreate) -> us.Role:
+    async def create_role(self, role: us.RoleCreate) -> Optional[us.Role]:
         db_role = um.Role(
             name=role.name,
             permissions=role.permissions
         )
         self.db_session.add(db_role)
-        await self.db_session.flush()
-        await self.db_session.refresh(db_role)
-        return db_role
-
-    async def update_role(self, role_data: us.RoleUpdate, role_id: int) -> Optional[us.Role]:
-        role: Optional[us.Role] = await self.get_object('id', role_id)
-        if not role:
+        try:
+            await self.db_session.flush()
+            await self.db_session.refresh(db_role)
+            return db_role
+        except:
+            await self.db_session.rollback()
             return None
 
+    async def update_role(self, role_data: us.RoleUpdate, role_id: int) -> (bool, str):
         query = update(um.Role).where(um.Role.id == role_id)
         if role_data.name:
             query = query.values(name=role_data.name)
-            role.name = role_data.name
-        if role_data.permissions:
+        if role_data.permissions >= 0:
             query = query.values(permissions=role_data.permissions)
-            role.permissions = role_data.permissions
+            print(query)
         query.execution_options(synchronize_session='fetch')
-        changed: CursorResult = await self.db_session.execute(query)
-
-        if changed.rowcount == 0:
-            return None
-        return role
+        try:
+            changed: CursorResult = await self.db_session.execute(query)
+            if changed.rowcount == 0:
+                return False, "Role not found"
+            return True, "Role updated"
+        except:
+            await self.db_session.rollback()
+            return False, "Database error"
