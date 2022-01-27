@@ -27,7 +27,7 @@ async def get_user_dal():
             yield UserDAL(session)
 
 
-def decode_token(token, db: UserDAL = Depends(get_user_dal)):
+async def decode_token(token, db: UserDAL = Depends(get_user_dal)):
     user = await db.get_user_by_username(token)
     return user
 

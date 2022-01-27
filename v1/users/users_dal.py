@@ -29,16 +29,7 @@ class UserDAL:
         user = None
         query = await self.db_session.get(um.User, user_id)
         if query:
-            # This is fucking stupid, but from_orm() doesn't work
-            user = us.UserDetail(
-                id=query.id,
-                username=query.username,
-                is_active=query.is_active,
-                display_name=query.display_name,
-                joined=query.joined,
-                modified=query.modified,
-                last_active=query.last_active
-            )
+            user = us.UserDetail.from_model(query)
         return user
 
     async def get_user_by_username(self, username: str) -> us.UserLogin:
@@ -47,11 +38,7 @@ class UserDAL:
         query = await self.db_session.execute(stm)
         res: um.User = query.scalars().first()
         if res:
-            user = us.UserLogin(
-                id=res.id,
-                username=res.username,
-                password=res.hashed_passcode
-            )
+            user = us.UserLogin.from_model(res)
         return user
 
     async def delete_user(self, user_id: int) -> bool:
@@ -63,11 +50,7 @@ class UserDAL:
         return True
 
     async def create_user(self, user: us.UserCreate) -> Optional[us.UserDetail]:
-        db_user = um.User(
-            username=user.username,
-            display_name=user.display_name,
-            hashed_passcode=user.password
-        )
+        db_user = um.User.from_schema(user)
         self.db_session.add(db_user)
         try:
             await self.db_session.flush()
@@ -94,7 +77,7 @@ class UserDAL:
             return False, "Database error"
 
     async def get_user_roles(self, user_id: int, params) -> (List[us.Role], int):
-        # I hate this
+        # I hate this - it's slow
         count_stm = select(func.count()).select_from(select(um.Role).filter(um.Role.users.any(id=user_id)).subquery())
         count_query = await self.db_session.execute(count_stm)
         count: int = count_query.scalar()
