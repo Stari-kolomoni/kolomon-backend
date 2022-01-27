@@ -62,3 +62,13 @@ class UserDetail(User):
     joined: Optional[datetime.datetime] = None
     modified: Optional[datetime.datetime] = None
     last_active: Optional[datetime.datetime] = None
+
+
+class UserLogin(BaseModel):
+    id: int
+    username: str
+    password: str
+
+    class Config:
+        orm_mode = True
+

@@ -41,6 +41,19 @@ class UserDAL:
             )
         return user
 
+    async def get_user_by_username(self, username: str) -> us.UserLogin:
+        user = None
+        stm = select(um.User).where(um.User.username == username)
+        query = await self.db_session.execute(stm)
+        res: um.User = query.scalars().first()
+        if res:
+            user = us.UserLogin(
+                id=res.id,
+                username=res.username,
+                password=res.hashed_passcode
+            )
+        return user
+
     async def delete_user(self, user_id: int) -> bool:
         query = delete(um.User).where(um.User.id == user_id)
         query.execution_options(synchronize_session='fetch')
@@ -91,6 +104,12 @@ class UserDAL:
         content_query = await self.db_session.execute(stm)
         result = content_query.all()
         return result, count
+
+    async def get_user_roles_by_username(self, username: str) -> List[us.Role]:
+        stm = select(um.Role.id, um.Role.name, um.Role.permissions).filter(um.Role.users.any(username=username))
+        query = await self.db_session.execute(stm)
+        result = query.all()
+        return result
 
     async def create_user_roles(self, user_id: int, role_ids: List[int]) -> (bool, str):
         user_stm = select(um.User).where(um.User.id == user_id).options(selectinload(um.User.roles))

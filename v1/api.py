@@ -10,3 +10,4 @@ router = APIRouter(
 
 router.include_router(users_router)
 router.include_router(roles_router)
+

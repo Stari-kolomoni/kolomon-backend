@@ -61,7 +61,7 @@ async def update_role(role_data: RoleUpdate, role_id: int, db: RoleDAL = Depends
     updated, msg = await db.update_role(role_data, role_id)
     if not updated:
         raise GeneralBackendException(404, "Role not found")
-    return mt.Message(message=msg)
+    return mt.Message(detail=msg)
 
 
 @router.delete("/{role_id}", response_model=mt.Message, status_code=200,
@@ -70,4 +70,4 @@ async def remove_role(role_id: int, db: RoleDAL = Depends(get_role_dal)):
     deleted = await db.delete_role(role_id)
     if not deleted:
         raise GeneralBackendException(404, "Role not found")
-    return mt.Message(message="Role deleted")
+    return mt.Message(detail="Role deleted")
