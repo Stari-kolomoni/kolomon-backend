@@ -114,7 +114,7 @@ class UserLogin(BaseModel):
 
     @staticmethod
     def from_model(entity):
-        return User(
+        return UserLogin(
             username=entity.username,
             id=entity.id,
             password=entity.hashed_passcode
@@ -122,3 +122,12 @@ class UserLogin(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None

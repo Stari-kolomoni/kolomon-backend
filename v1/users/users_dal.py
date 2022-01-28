@@ -32,7 +32,16 @@ class UserDAL:
             user = us.UserDetail.from_model(query)
         return user
 
-    async def get_user_by_username(self, username: str) -> us.UserLogin:
+    async def get_user_by_username(self, username: str) -> us.UserDetail:
+        user = None
+        stm = select(um.User).where(um.User.username == username)
+        query = await self.db_session.execute(stm)
+        res: um.User = query.scalars().first()
+        if res:
+            user = us.UserDetail.from_model(res)
+        return user
+
+    async def get_user_credentials_by_username(self, username: str) -> us.UserLogin:
         user = None
         stm = select(um.User).where(um.User.username == username)
         query = await self.db_session.execute(stm)
@@ -42,12 +51,22 @@ class UserDAL:
         return user
 
     async def delete_user(self, user_id: int) -> bool:
-        query = delete(um.User).where(um.User.id == user_id)
-        query.execution_options(synchronize_session='fetch')
-        deleted = await self.db_session.execute(query)
-        if deleted.rowcount == 0:
-            return False
-        return True
+        try:
+            # Because SQLAlchemy many-to-many relationship cascading just doesn't work
+            query = delete(um.RoleToUser).where(um.RoleToUser.user_id == user_id)
+            query.execution_options(synchronize_session='fetch')
+            await self.db_session.execute(query)
+
+            query = delete(um.User).where(um.User.id == user_id)
+            query.execution_options(synchronize_session='fetch')
+            deleted = await self.db_session.execute(query)
+            if deleted.rowcount == 0:
+                await self.db_session.rollback()
+                return False
+            self.db_session.flush()
+            return True
+        except:
+            await self.db_session.rollback()
 
     async def create_user(self, user: us.UserCreate) -> Optional[us.UserDetail]:
         db_user = um.User.from_schema(user)
