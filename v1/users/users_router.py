@@ -36,6 +36,7 @@ async def get_user_dal():
 
 async def verify_password(plain_password: str, hashed_password: str):
     try:
+        print(plain_password, hashed_password)
         return pwd_context.verify(plain_password, hashed_password)
     except:
         print("PWD error")
@@ -115,9 +116,9 @@ async def read_user_me(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/me/perms")
-async def read_user_me_roles(current_user: User = Depends(get_current_user),
-                             db: UserDAL = Depends(get_user_dal)):
-    roles = await db.get_user_roles_by_username(current_user.username)
+async def read_user_me_permissions(current_user: User = Depends(get_current_user),
+                                   db: UserDAL = Depends(get_user_dal)):
+    roles, _ = await db.get_user_roles(current_user.id, None)
     perms = 0
     for role in roles:
         perms = perms | role.permissions
@@ -126,7 +127,7 @@ async def read_user_me_roles(current_user: User = Depends(get_current_user),
     }
 
 
-@router.post("/token")
+@router.post("/token", description=doc_str.LOGIN)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: UserDAL = Depends(get_user_dal)):
     user = await authenticate_user(form_data.username, form_data.password, db)
     if not user:
@@ -158,6 +159,7 @@ async def read_user_details(user_id: int, db: UserDAL = Depends(get_user_dal)):
             responses={404: {}, 400: {}}, description=doc_str.PUT_USER)
 async def update_user(user_data: UserUpdate, user_id: int, db: UserDAL = Depends(get_user_dal),
                       current_user: UserDetail = Depends(get_current_user)):
+    # TODO: Admin permission
     if user_id != current_user.id:
         raise GeneralBackendException(401, "You are not the owner of this account.")
     updated, msg = await db.update_user(user_data, user_id)

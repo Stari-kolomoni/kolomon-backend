@@ -43,9 +43,10 @@ class UserDAL:
 
     async def get_user_credentials_by_username(self, username: str) -> us.UserLogin:
         user = None
-        stm = select(um.User).where(um.User.username == username)
+        stm = select(um.User.id, um.User.username, um.User.hashed_passcode)\
+            .where(um.User.username == username)
         query = await self.db_session.execute(stm)
-        res: um.User = query.scalars().first()
+        res: um.User = query.first()
         if res:
             user = us.UserLogin.from_model(res)
         return user
@@ -97,9 +98,11 @@ class UserDAL:
 
     async def get_user_roles(self, user_id: int, params) -> (List[us.Role], int):
         # I hate this - it's slow
-        count_stm = select(func.count()).select_from(select(um.Role).filter(um.Role.users.any(id=user_id)).subquery())
-        count_query = await self.db_session.execute(count_stm)
-        count: int = count_query.scalar()
+        count = -1
+        if params:
+            count_stm = select(func.count()).select_from(select(um.Role).filter(um.Role.users.any(id=user_id)).subquery())
+            count_query = await self.db_session.execute(count_stm)
+            count: int = count_query.scalar()
 
         stm = select(um.Role.id, um.Role.name, um.Role.permissions).filter(um.Role.users.any(id=user_id))
         stm = dd.paging_filter_sort(stm, params)
