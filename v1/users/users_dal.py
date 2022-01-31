@@ -29,45 +29,48 @@ class UserDAL:
         user = None
         query = await self.db_session.get(um.User, user_id)
         if query:
-            # This is fucking stupid, but from_orm() doesn't work
-            user = us.UserDetail(
-                id=query.id,
-                username=query.username,
-                is_active=query.is_active,
-                display_name=query.display_name,
-                joined=query.joined,
-                modified=query.modified,
-                last_active=query.last_active
-            )
+            user = us.UserDetail.from_model(query)
         return user
 
-    async def get_user_by_username(self, username: str) -> us.UserLogin:
+    async def get_user_by_username(self, username: str) -> us.UserDetail:
         user = None
         stm = select(um.User).where(um.User.username == username)
         query = await self.db_session.execute(stm)
         res: um.User = query.scalars().first()
         if res:
-            user = us.UserLogin(
-                id=res.id,
-                username=res.username,
-                password=res.hashed_passcode
-            )
+            user = us.UserDetail.from_model(res)
+        return user
+
+    async def get_user_credentials_by_username(self, username: str) -> us.UserLogin:
+        user = None
+        stm = select(um.User.id, um.User.username, um.User.hashed_passcode)\
+            .where(um.User.username == username)
+        query = await self.db_session.execute(stm)
+        res: um.User = query.first()
+        if res:
+            user = us.UserLogin.from_model(res)
         return user
 
     async def delete_user(self, user_id: int) -> bool:
-        query = delete(um.User).where(um.User.id == user_id)
-        query.execution_options(synchronize_session='fetch')
-        deleted = await self.db_session.execute(query)
-        if deleted.rowcount == 0:
-            return False
-        return True
+        try:
+            # Because SQLAlchemy many-to-many relationship cascading just doesn't work
+            query = delete(um.RoleToUser).where(um.RoleToUser.user_id == user_id)
+            query.execution_options(synchronize_session='fetch')
+            await self.db_session.execute(query)
+
+            query = delete(um.User).where(um.User.id == user_id)
+            query.execution_options(synchronize_session='fetch')
+            deleted = await self.db_session.execute(query)
+            if deleted.rowcount == 0:
+                await self.db_session.rollback()
+                return False
+            self.db_session.flush()
+            return True
+        except:
+            await self.db_session.rollback()
 
     async def create_user(self, user: us.UserCreate) -> Optional[us.UserDetail]:
-        db_user = um.User(
-            username=user.username,
-            display_name=user.display_name,
-            hashed_passcode=user.password
-        )
+        db_user = um.User.from_schema(user)
         self.db_session.add(db_user)
         try:
             await self.db_session.flush()
@@ -94,10 +97,12 @@ class UserDAL:
             return False, "Database error"
 
     async def get_user_roles(self, user_id: int, params) -> (List[us.Role], int):
-        # I hate this
-        count_stm = select(func.count()).select_from(select(um.Role).filter(um.Role.users.any(id=user_id)).subquery())
-        count_query = await self.db_session.execute(count_stm)
-        count: int = count_query.scalar()
+        # I hate this - it's slow
+        count = -1
+        if params:
+            count_stm = select(func.count()).select_from(select(um.Role).filter(um.Role.users.any(id=user_id)).subquery())
+            count_query = await self.db_session.execute(count_stm)
+            count: int = count_query.scalar()
 
         stm = select(um.Role.id, um.Role.name, um.Role.permissions).filter(um.Role.users.any(id=user_id))
         stm = dd.paging_filter_sort(stm, params)

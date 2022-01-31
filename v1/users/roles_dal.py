@@ -29,11 +29,7 @@ class RoleDAL:
         role = None
         query = await self.db_session.get(um.Role, role_id)
         if query:
-            role = us.Role(
-                id=query.id,
-                name=query.name,
-                permissions=query.permissions
-            )
+            role = us.Role.from_model(query)
         return role
 
     async def delete_role(self, role_id: int) -> bool:
@@ -45,10 +41,7 @@ class RoleDAL:
         return True
 
     async def create_role(self, role: us.RoleCreate) -> Optional[us.Role]:
-        db_role = um.Role(
-            name=role.name,
-            permissions=role.permissions
-        )
+        db_role = um.Role.from_schema(role)
         self.db_session.add(db_role)
         try:
             await self.db_session.flush()

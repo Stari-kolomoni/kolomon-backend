@@ -24,6 +24,14 @@ class User(Base):
     def __str__(self):
         return f"User {self.username}"
 
+    @staticmethod
+    def from_schema(entity):
+        return User(
+            username=entity.username,
+            display_name=entity.display_name,
+            hashed_passcode=entity.password
+        )
+
 
 class Role(Base):
     __tablename__ = "roles"
@@ -36,11 +44,18 @@ class Role(Base):
 
     __mapper__args = {'eager_defaults': True}
 
+    @staticmethod
+    def from_schema(entity):
+        return Role(
+            name=entity.name,
+            permissions=entity.permissions
+        )
+
 
 class RoleToUser(Base):
     __tablename__ = "role_to_user"
 
-    role_id = Column(Integer, ForeignKey('roles.id'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    role_id = Column(Integer, ForeignKey('roles.id', ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
 
     __mapper__args = {'eager_defaults': True}

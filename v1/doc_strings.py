@@ -16,3 +16,5 @@ GET_ROLE = "Retrieves existing role. Role ID required."
 POST_ROLE = "Creates a new role. Requires name and permission number, where each bit represent a permission."
 PUT_ROLE = "Updates existing role. Role ID required. No field is required, which makes it similar to PATCH method."
 DELETE_ROLE = "Deletes an existing role. Role ID required."
+
+LOGIN = "Uses OAuth2 authentication. Use like in docs. Username and password required."
