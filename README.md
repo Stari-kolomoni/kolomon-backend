@@ -1,9 +1,9 @@
 # Backend for the website Stari kolomoni
 
 ![Bintray](https://img.shields.io/badge/Python-3.9-blue)
-![Bintray](https://img.shields.io/badge/fastapi-0.68.2-yellowgreen)
-![Bintray](https://img.shields.io/badge/PostgreSQL-10-yellow)
-![Bintray](https://img.shields.io/badge/Poetry-1.1.8-red)
+![Bintray](https://img.shields.io/badge/fastapi-0.72.0-yellowgreen)
+![Bintray](https://img.shields.io/badge/PostgreSQL-13-yellow)
+![Bintray](https://img.shields.io/badge/Poetry-1.1.12-red)
 
 ## 1. Project structure
 
