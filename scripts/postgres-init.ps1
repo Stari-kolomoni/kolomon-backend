@@ -34,4 +34,4 @@ Write-ScriptLine -Name "Script" -Content "Shutting down temporary server"
 Invoke-Expression "$PostgresBinary stop -D $DatabaseDir"
 
 Write-ScriptLine -Name "Script" -Content "PostgreSQL database initialization finished"
-Write-ScriptLine -Name "Script" -Content "To run the database, use the postgres-start.ps1 script"
+Write-ScriptLine -Name "Script" -Content "To run the database, use the postgres-run.ps1 script"

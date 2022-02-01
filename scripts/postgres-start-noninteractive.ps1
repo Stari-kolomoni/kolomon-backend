@@ -1,5 +1,5 @@
 Import-Module "$PSScriptRoot\PostgresScripts.psm1"
-Write-Header -Title "PostgreSQL start script"
+Write-Header -Title "PostgreSQL Run Script"
 
 $BaseDir = Join-Path $PSScriptRoot ".." -Resolve
 $DatabaseDir = Join-Path $BaseDir "database"
