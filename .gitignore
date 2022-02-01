@@ -9,3 +9,4 @@ __pycache__
 database
 pgsql
 db.log
+alembic.ini

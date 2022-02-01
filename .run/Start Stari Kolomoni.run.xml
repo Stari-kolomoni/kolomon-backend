@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start Stari Kolomoni" type="CompoundRunConfigurationType">
+    <toRun name="Run Standalone PostgreSQL" type="PowerShellRunType" />
+    <toRun name="Run Backend (uvicorn)" type="PythonConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

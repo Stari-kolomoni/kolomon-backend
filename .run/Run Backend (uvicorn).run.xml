@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run Kolomoni backend" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="Run Backend (uvicorn)" type="PythonConfigurationType" factoryName="Python">
     <module name="kolomon-backend" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -23,7 +23,7 @@
       </ENTRIES>
     </EXTENSION>
     <option name="SCRIPT_NAME" value="uvicorn" />
-    <option name="PARAMETERS" value="main:app --reload --reload-dir lexicon" />
+    <option name="PARAMETERS" value="main:app --reload" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="true" />
