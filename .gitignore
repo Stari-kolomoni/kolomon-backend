@@ -10,3 +10,6 @@ database
 pgsql
 db.log
 alembic.ini
+
+## Configuration and other sentitive files
+configuration.toml
