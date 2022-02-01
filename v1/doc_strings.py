@@ -1,4 +1,3 @@
-
 GET_USERS = "Retrieves a list of general information about users. Use 'limit' and 'skip' for pagination."
 GET_USER = "Retrieves detailed information about existing user. User ID required."
 POST_USER = "Creates a new user. Requires username and password, display_name is optional."

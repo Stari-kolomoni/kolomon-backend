@@ -1,5 +1,3 @@
-from logging.config import dictConfig
-
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -16,7 +14,7 @@ app = FastAPI()
 
 
 @app.exception_handler(GeneralBackendException)
-async def not_found_exception_handler(request: Request, exc: GeneralBackendException):
+async def not_found_exception_handler(_request: Request, exc: GeneralBackendException):
     msg = Message(detail=exc.message)
     return JSONResponse(
         status_code=exc.code,

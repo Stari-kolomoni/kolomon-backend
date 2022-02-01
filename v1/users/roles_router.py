@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
@@ -24,7 +22,7 @@ async def get_role_dal():
             yield RoleDAL(session)
 
 
-@router.get("/", response_model=List[Role], status_code=200,
+@router.get("/", response_model=list[Role], status_code=200,
             description=doc_str.GET_ROLES)
 async def read_all_roles(req: Request, db: RoleDAL = Depends(get_role_dal)):
     params = req.query_params

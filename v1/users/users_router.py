@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from starlette import status
+from starlette.datastructures import QueryParams
 from starlette.responses import JSONResponse
 
 
@@ -61,6 +62,7 @@ async def get_current_user(db: UserDAL = Depends(get_user_dal),
         detail="Could not validate credentials",
         headers={'WWW-Authenticate': 'Bearer'}
     )
+
     try:
         payload = jwt.decode(token, config.JWT.SECRET_KEY, algorithms=[config.JWT.ALGORITHM])
         username: str = payload.get('sub')
@@ -69,9 +71,11 @@ async def get_current_user(db: UserDAL = Depends(get_user_dal),
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
+
     user = await db.get_user_by_username(token_data.username)
     if user is None:
         raise credentials_exception
+
     return user
 
 
@@ -81,8 +85,10 @@ async def create_access_token(data: dict, expires_delta: Optional[timedelta] = N
         expire = datetime.datetime.utcnow() + expires_delta
     else:
         expire = datetime.datetime.utcnow() + timedelta(minutes=15)
+
     to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(to_encode, config.JWT.SECRET_KEY, algorithm=config.JWT.ALGORITHM)
+
     return encoded_jwt
 
 
@@ -90,10 +96,11 @@ async def create_access_token(data: dict, expires_delta: Optional[timedelta] = N
             description=doc_str.GET_USERS)
 async def read_users(req: Request, db: UserDAL = Depends(get_user_dal)):
     params = req.query_params
-
     content, count = await db.get_users(params)
+
     json_content = jsonable_encoder(content)
     headers = {"X-Total-Count": str(count)}
+
     return JSONResponse(
         content=json_content, headers=headers
     )
@@ -121,6 +128,7 @@ async def read_user_me_permissions(current_user: User = Depends(get_current_user
     perms = 0
     for role in roles:
         perms = perms | role.permissions
+
     return {
         'permissions': perms
     }
@@ -135,10 +143,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: UserDAL = 
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     access_token_expires = timedelta(minutes=config.JWT.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = await create_access_token(
         data={'sub': user.username}, expires_delta=access_token_expires
     )
+
     return {
         'access_token': access_token,
         'token_type': 'bearer'
@@ -161,9 +171,11 @@ async def update_user(user_data: UserUpdate, user_id: int, db: UserDAL = Depends
     # TODO: Admin permission
     if user_id != current_user.id:
         raise GeneralBackendException(401, "You are not the owner of this account.")
+
     updated, msg = await db.update_user(user_data, user_id)
     if not updated:
         raise GeneralBackendException(404, msg)
+
     return mt.Message(detail=msg)
 
 
@@ -179,10 +191,12 @@ async def remove_user(user_id: int, db: UserDAL = Depends(get_user_dal)):
 @router.get("/{user_id}/roles", response_model=List[Role], status_code=200,
             description=doc_str.GET_USER_ROLES)
 async def read_user_roles(req: Request, user_id: int, db: UserDAL = Depends(get_user_dal)):
-    params = req.query_params
+    params: QueryParams = req.query_params
     content, count = await db.get_user_roles(user_id, params)
+
     json_content = jsonable_encoder(content)
     headers = {"X-Total-Count": str(count)}
+
     return JSONResponse(
         content=json_content, headers=headers
     )

@@ -23,26 +23,27 @@ class RoleDAL:
         content_stm = dd.paging_filter_sort(content_stm, params)
         content_query = await self.db_session.execute(content_stm)
         content = content_query.all()
+
         return content, count
 
-    async def get_role(self, role_id: int) -> us.Role:
-        role = None
+    async def get_role(self, role_id: int) -> Optional[us.Role]:
         query = await self.db_session.get(um.Role, role_id)
         if query:
-            role = us.Role.from_model(query)
-        return role
+            return us.Role.from_model(query)
+        else:
+            return None
 
     async def delete_role(self, role_id: int) -> bool:
         query = delete(um.Role).where(um.Role.id == role_id)
         query.execution_options(synchronize_session='fetch')
+
         deleted = await self.db_session.execute(query)
-        if deleted.rowcount == 0:
-            return False
-        return True
+        return deleted.rowcount != 0
 
     async def create_role(self, role: us.RoleCreate) -> Optional[us.Role]:
         db_role = um.Role.from_schema(role)
         self.db_session.add(db_role)
+
         try:
             await self.db_session.flush()
             await self.db_session.refresh(db_role)
@@ -51,14 +52,14 @@ class RoleDAL:
             await self.db_session.rollback()
             return None
 
-    async def update_role(self, role_data: us.RoleUpdate, role_id: int) -> (bool, str):
+    async def update_role(self, role_data: us.RoleUpdate, role_id: int) -> tuple[bool, str]:
         query = update(um.Role).where(um.Role.id == role_id)
         if role_data.name:
             query = query.values(name=role_data.name)
-        if role_data.permissions >= 0:
+        elif role_data.permissions >= 0:
             query = query.values(permissions=role_data.permissions)
-            print(query)
         query.execution_options(synchronize_session='fetch')
+
         try:
             changed: CursorResult = await self.db_session.execute(query)
             if changed.rowcount == 0:
