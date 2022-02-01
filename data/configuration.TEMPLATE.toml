@@ -1,0 +1,15 @@
+## PostgreSQL database configuration.
+[database]
+host = "localhost"
+port = "5432"
+
+user = ""
+password = ""
+database_name = ""
+
+
+## Settings for JWT token generation.
+[JWT]
+secret_key = "temp"
+algorithm = "HS256"
+access_token_expire_minutes = 30

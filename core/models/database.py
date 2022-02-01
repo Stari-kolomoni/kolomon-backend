@@ -1,15 +1,13 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+from ..configuration import config
 
-# TODO: Change this in deployment
-user = "kolomon"
-password = "kolomon"
-server = "localhost:5432"
-db_name = "kolomon_db"
-DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{server}/{db_name}"
+DATABASE_URL = f"postgresql+asyncpg://" \
+               f"{config.DATABASE.USER}:{config.DATABASE.PASSWORD}" \
+               f"@{config.DATABASE.HOST}/{config.DATABASE.DATABASE_NAME}"
 
-# TODO: In production, add SSL = True!!!
+# TODO: Add SSL = True in production!
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 async_session = sessionmaker(

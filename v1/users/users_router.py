@@ -1,8 +1,6 @@
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, Request, HTTPException
-from typing import List
-
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
@@ -10,11 +8,12 @@ from passlib.context import CryptContext
 from starlette import status
 from starlette.responses import JSONResponse
 
-from core import settings
-from core.exceptions import GeneralBackendException
+
 import core.message_types as mt
+from core.exceptions import GeneralBackendException
 from core.models.database import async_session
 from core.schemas.users_schema import *
+from core.configuration import config
 
 import v1.doc_strings as doc_str
 from v1.dependencies import oauth2_scheme
@@ -63,7 +62,7 @@ async def get_current_user(db: UserDAL = Depends(get_user_dal),
         headers={'WWW-Authenticate': 'Bearer'}
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, config.JWT.SECRET_KEY, algorithms=[config.JWT.ALGORITHM])
         username: str = payload.get('sub')
         if username is None:
             raise credentials_exception
@@ -83,7 +82,7 @@ async def create_access_token(data: dict, expires_delta: Optional[timedelta] = N
     else:
         expire = datetime.datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({'exp': expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, config.JWT.SECRET_KEY, algorithm=config.JWT.ALGORITHM)
     return encoded_jwt
 
 
@@ -136,7 +135,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: UserDAL = 
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=config.JWT.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = await create_access_token(
         data={'sub': user.username}, expires_delta=access_token_expires
     )
