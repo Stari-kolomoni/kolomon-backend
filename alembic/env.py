@@ -5,12 +5,19 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from core.models.users_model import *
 from core.models.database import Base
+from core.configuration import config as core_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Dynamically set the PostgreSQL options. The url in alembic.ini should use template strings (e.g. "%(POSTGRES_USER)s")
+config.set_main_option("POSTGRES_USER", core_config.DATABASE.USER)
+config.set_main_option("POSTGRES_PASSWORD", core_config.DATABASE.PASSWORD)
+config.set_main_option("POSTGRES_HOST", core_config.DATABASE.HOST)
+config.set_main_option("POSTGRES_PORT", core_config.DATABASE.PORT)
+config.set_main_option("POSTGRES_DBNAME", core_config.DATABASE.DATABASE_NAME)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
