@@ -1,10 +1,7 @@
-
 def paging_filter_sort(query, params):
-    limit = params.get('limit')
-    skip = params.get('skip')
-    if skip:
+    if skip := params.get('skip'):
         query = query.offset(skip)
-    if limit:
+    if limit := params.get('limit'):
         query = query.limit(limit)
 
     return query

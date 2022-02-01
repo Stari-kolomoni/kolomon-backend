@@ -8,7 +8,7 @@ class LogConfig(BaseModel):
     """Logging configuration for the server.
     Shamelessly copied from https://stackoverflow.com/questions/63510041/adding-python-logging-to-fastapi-endpoints-hosted-on-docker-doesnt-display-api"""
 
-    LOGGER_NAME: str = "KolomonBE_Logs"
+    LOGGER_NAME: str = "KolomoniBackend"
     LOG_FORMAT: str = "%(levelprefix)s | %(asctime)s | %(message)s"
     LOG_LEVEL: str = "DEBUG"
 
@@ -37,4 +37,4 @@ def init_logger():
     dictConfig(LogConfig().dict())
 
 
-logger = logging.getLogger("KolomonBE_Logs")
+logger = logging.getLogger(LogConfig.LOGGER_NAME)

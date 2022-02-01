@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, Field, validator
 
 
@@ -55,13 +55,13 @@ class UserCreate(UserBase):
     password: str = Field(alias='hashed_passcode')
 
     @validator('username')
-    def username_must_not_be_empty(cls, v):
+    def username_must_not_be_empty(self, v):
         if not v:
             raise ValueError("Username is empty")
         return v
 
     @validator('password')
-    def password_must_not_be_empty(cls, v):
+    def password_must_not_be_empty(self, v):
         if not v:
             raise ValueError("Password is empty")
         return v

@@ -36,10 +36,8 @@ async def get_user_dal():
 
 async def verify_password(plain_password: str, hashed_password: str):
     try:
-        print(plain_password, hashed_password)
         return pwd_context.verify(plain_password, hashed_password)
-    except:
-        print("PWD error")
+    except (ValueError, TypeError):
         return False
 
 
@@ -92,7 +90,7 @@ async def create_access_token(data: dict, expires_delta: Optional[timedelta] = N
     return encoded_jwt
 
 
-@router.get("/", response_model=List[User], status_code=200,
+@router.get("/", response_model=list[User], status_code=200,
             description=doc_str.GET_USERS)
 async def read_users(req: Request, db: UserDAL = Depends(get_user_dal)):
     params = req.query_params
@@ -188,7 +186,7 @@ async def remove_user(user_id: int, db: UserDAL = Depends(get_user_dal)):
     return mt.Message(detail="User deleted")
 
 
-@router.get("/{user_id}/roles", response_model=List[Role], status_code=200,
+@router.get("/{user_id}/roles", response_model=list[Role], status_code=200,
             description=doc_str.GET_USER_ROLES)
 async def read_user_roles(req: Request, user_id: int, db: UserDAL = Depends(get_user_dal)):
     params: QueryParams = req.query_params
@@ -204,7 +202,7 @@ async def read_user_roles(req: Request, user_id: int, db: UserDAL = Depends(get_
 
 @router.post("/{user_id}/roles", response_model=mt.Message, status_code=200,
              description=doc_str.POST_USER_ROLES)
-async def add_user_roles(user_id: int, role_ids: List[int], db: UserDAL = Depends(get_user_dal)):
+async def add_user_roles(user_id: int, role_ids: list[int], db: UserDAL = Depends(get_user_dal)):
     added, msg = await db.create_user_roles(user_id, role_ids)
     if not added:
         raise GeneralBackendException(404, msg)
@@ -213,7 +211,7 @@ async def add_user_roles(user_id: int, role_ids: List[int], db: UserDAL = Depend
 
 @router.delete("/{user_id}/roles", response_model=mt.Message, status_code=200,
                description=doc_str.DELETE_USER_ROLES)
-async def remove_user_roles(user_id: int, role_ids: List[int], db: UserDAL = Depends(get_user_dal)):
+async def remove_user_roles(user_id: int, role_ids: list[int], db: UserDAL = Depends(get_user_dal)):
     removed, msg = await db.remove_user_roles(user_id, role_ids)
     if not removed:
         raise GeneralBackendException(404, msg)
