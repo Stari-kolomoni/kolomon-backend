@@ -5,6 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from core.models.users_model import *
+from core.models.lex_model import *
 from core.models.database import Base
 from core.configuration import config as core_config
 
