@@ -37,4 +37,4 @@ def init_logger():
     dictConfig(LogConfig().dict())
 
 
-logger = logging.getLogger(LogConfig.LOGGER_NAME)
+logger = logging.getLogger(LogConfig().LOGGER_NAME)

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .database import Base
+import core.schemas.lex_schema as ls
 
 
 class Entry(Base):
@@ -20,6 +21,18 @@ class Entry(Base):
                               back_populates='entries')
 
     __mapper__args = {'eager_defaults': True}
+
+    @staticmethod
+    def from_schema(entry_scheme: ls.EntryCreate):
+        if entry_scheme.lemma == "":
+            return None
+
+        entry = Entry(
+            lemma=entry_scheme.lemma,
+            description=entry_scheme.description,
+            language=entry_scheme.language
+        )
+        return entry
 
 
 class Link(Base):
@@ -69,6 +82,14 @@ class Translation(Base):
 
     parent = Column(Integer, ForeignKey('entries.id'), primary_key=True)
     child = Column(Integer, ForeignKey('entries.id'), primary_key=True)
+    state = Column(Integer, ForeignKey('translation_states.id'))
+
+
+class TranslationState(Base):
+    __tablename__ = "translation_states"
+
+    id = Column(Integer, primary_key=True, index=True)
+    label = Column(String)
 
 
 class Relation(Base):
