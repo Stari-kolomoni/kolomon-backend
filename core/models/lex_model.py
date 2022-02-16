@@ -15,8 +15,6 @@ class Entry(Base):
     created = Column(DateTime, server_default=func.now())
     modified = Column(DateTime, onupdate=func.now(), nullable=True)
 
-    links = relationship('Link', secondary='link_to_entry',
-                         back_populates='entries')
     categories = relationship('Category', secondary='category_to_entry',
                               back_populates='entries')
 
@@ -40,10 +38,19 @@ class Link(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=True)
-    url = Column(String, unique=True, index=True)
+    url = Column(String, index=True)
+    entry_id = Column(Integer, ForeignKey('entries.id'))
 
-    entries = relationship('Entry', secondary='link_to_entry',
-                           back_populates='links')
+    @staticmethod
+    def from_schema_from_id(link_scheme: ls.LinkCreate, entry_id):
+        if link_scheme.url == "":
+            return None
+        link = Link(
+            title=link_scheme.title,
+            url=link_scheme.url,
+            entry_id=entry_id
+        )
+        return link
 
 
 class Category(Base):
@@ -93,17 +100,10 @@ class TranslationState(Base):
 
 
 class Relation(Base):
-    __tablename__ = "relation"
+    __tablename__ = "relations"
 
     entry1 = Column(Integer, ForeignKey('entries.id'), primary_key=True)
     entry2 = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-
-
-class LinkToEntry(Base):
-    __tablename__ = "link_to_entry"
-
-    entry_id = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-    link_id = Column(Integer, ForeignKey('links.id'), primary_key=True)
 
 
 class CategoryToEntry(Base):
