@@ -29,5 +29,5 @@ CREATE_SUGGESTION = "Links two entries together into a suggestion. Parent entry 
                     "and the suggested translation ID should be given as a query parameter."
 CREATE_TRANSLATION = "Links two entries into translation. Parent entry ID should be specified as <entry_id> " \
                      "and the translation ID should be given as a query parameter."
-CREATE_RELATION = "Make one-sided relation between two entries. Parent entry ID should be specified as <entry_id> " \
+CREATE_RELATION = "Make one-way relation between two entries. Parent entry ID should be specified as <entry_id> " \
                   "and the child ID should be given as a query parameter."
