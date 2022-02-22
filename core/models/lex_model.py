@@ -15,9 +15,6 @@ class Entry(Base):
     created = Column(DateTime, server_default=func.now())
     modified = Column(DateTime, onupdate=func.now(), nullable=True)
 
-    categories = relationship('Category', secondary='category_to_entry',
-                              back_populates='entries')
-
     __mapper__args = {'eager_defaults': True}
 
     @staticmethod
@@ -60,36 +57,40 @@ class Category(Base):
     name = Column(String, index=True)
     description = Column(String, nullable=True)
 
-    entries = relationship('Entry', secondary='category_to_entry',
-                           back_populates='categories')
-
 
 class Slovene(Base):
     __tablename__ = "slovene"
 
-    id = Column(Integer, ForeignKey('entries.id'), primary_key=True)
+    id = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                primary_key=True)
     alt_form = Column(String, nullable=True)
 
 
 class English(Base):
     __tablename__ = "english"
 
-    id = Column(Integer, ForeignKey('entries.id'), primary_key=True)
+    id = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                primary_key=True)
 
 
 class Suggestion(Base):
     __tablename__ = "suggestions"
 
-    parent = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-    child = Column(Integer, ForeignKey('entries.id'), primary_key=True)
+    parent = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                    primary_key=True)
+    child = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                   primary_key=True)
 
 
 class Translation(Base):
     __tablename__ = "translations"
 
-    parent = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-    child = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-    state = Column(Integer, ForeignKey('translation_states.id'))
+    parent = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                    primary_key=True)
+    child = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                   primary_key=True)
+    state = Column(Integer, ForeignKey('translation_states.id',
+                                       ondelete="SET NULL"))
 
 
 class TranslationState(Base):
@@ -102,15 +103,19 @@ class TranslationState(Base):
 class Relation(Base):
     __tablename__ = "relations"
 
-    entry1 = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-    entry2 = Column(Integer, ForeignKey('entries.id'), primary_key=True)
+    entry1 = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                    primary_key=True)
+    entry2 = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                    primary_key=True)
 
 
 class CategoryToEntry(Base):
     __tablename__ = "category_to_entry"
 
-    entry_id = Column(Integer, ForeignKey('entries.id'), primary_key=True)
-    category_id = Column(Integer, ForeignKey('categories.id'), primary_key=True)
+    entry_id = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
+                      primary_key=True)
+    category_id = Column(Integer, ForeignKey('categories.id', ondelete="CASCADE"),
+                         primary_key=True)
 
 
 class Event(Base):

@@ -60,6 +60,11 @@ class EntryMinimal(BaseModel):
         return entry
 
 
+class EntryUpdate(BaseModel):
+    lemma: str
+    description: str
+
+
 class Entry(BaseModel):
     id: int
     lemma: str

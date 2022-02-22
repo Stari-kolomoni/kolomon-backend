@@ -1,6 +1,7 @@
+import traceback
 from typing import Optional
 
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -52,8 +53,43 @@ class EntryDAL:
             await self.db_session.rollback()
             return 500
 
+    async def delete_entry(self, entry_id: int) -> int:
+        sql = text("DELETE FROM entries WHERE id = :id")
+        try:
+            result_cursor = await self.db_session.execute(sql, {"id": entry_id})
+            affected_rows_count = result_cursor.rowcount
+            if affected_rows_count > 0:
+                await self.db_session.flush()
+                return 200
+            else:
+                await self.db_session.rollback()
+                return 404
+        except:
+            await self.db_session.rollback()
+            return 500
+
+    async def update_entry(self, entry_id: int, updates: ls.EntryUpdate):
+        sql = text("UPDATE entries "
+                   "SET lemma = :lemma, description = :description, modified = NOW() "
+                   "WHERE id = :id")
+        try:
+            result_cursor = await self.db_session.execute(sql, {"id": entry_id,
+                                                                "lemma": updates.lemma,
+                                                                "description": updates.description})
+            affected_rows_count = result_cursor.rowcount
+            if affected_rows_count > 0:
+                await self.db_session.flush()
+                return 200
+            else:
+                await self.db_session.rollback()
+                return 404
+        except:
+            print(traceback.format_exc())
+            await self.db_session.rollback()
+            return 500
+
     async def create_link(self, link: ls.LinkCreate, entry_id: int) -> int:
-        if not self.entry_exists(entry_id):
+        if not await self.entry_exists(entry_id):
             return 404
 
         db_link = lm.Link.from_schema_from_id(link, entry_id)
@@ -149,10 +185,20 @@ class EntryDAL:
             await self.db_session.rollback()
         return 500
 
+    async def delete_suggestion(self, parent_id: int, child_id: int) -> int:
+        sql = text("DELETE FROM suggestions WHERE parent = :parent AND child = :child")
+        try:
+            await self.db_session.execute(sql, {"parent": parent_id, "child": child_id})
+            await self.db_session.flush()
+            return 200
+        except:
+            await self.db_session.rollback()
+        return 500
+
     async def delete_translations_of_parent(self, parent_id: int) -> int:
         sql = text("DELETE FROM translations WHERE parent = :parent")
         try:
-            await self.db_session.execute(sql, {"parent", parent_id})
+            await self.db_session.execute(sql, {"parent": parent_id})
             await self.db_session.flush()
             return 200
         except:
@@ -202,5 +248,15 @@ class EntryDAL:
             await self.db_session.flush()
             return 200
         except IntegrityError:
+            await self.db_session.rollback()
+        return 500
+
+    async def delete_relation(self, parent_id: int, child_id: int) -> int:
+        sql = text("DELETE FROM relations WHERE entry1 = :parent AND entry2 = :child")
+        try:
+            await self.db_session.execute(sql, {"parent": parent_id, "child": child_id})
+            await self.db_session.flush()
+            return 200
+        except:
             await self.db_session.rollback()
         return 500
