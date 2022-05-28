@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "kolomon-backend"
 version = "0.1.0"
-description = "Back-end for Stari kolomoni"
+description = "Backend for Stari Kolomoni, a Slovenian fantasy dictionary project"
 authors = ["Grimpy <gorupgorazd@gmail.com>"]
 
 [tool.poetry.dependencies]
