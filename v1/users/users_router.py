@@ -99,7 +99,7 @@ async def get_current_user(
     )
 
     try:
-        payload = jwt.decode(token=token, key=config.JWT.SECRET_KEY, algorithms=[config.JWT.ALGORITHM])
+        payload: dict = jwt.decode(token=token, key=config.JWT.SECRET_KEY, algorithms=[config.JWT.ALGORITHM])
 
         username: str = payload.get("sub")
         if username is None:
@@ -147,8 +147,11 @@ async def read_users(
         req: Request,
         database: UserDAL = Depends(get_user_dal)
 ):
-    params = req.query_params
-    content, count = await database.get_users(params)
+    """
+    Get a list of registered users.
+    Can be paginated using the skip and limit query parameters.
+    """
+    content, count = await database.get_users(req.query_params)
 
     json_content = jsonable_encoder(content)
     headers = {
@@ -169,6 +172,9 @@ async def create_user(
         new_user: UserCreate,
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Create a new user.
+    """
     new_user.password = hash_password(new_user.password)
 
     new_user = await database.create_user(new_user)
@@ -183,6 +189,9 @@ async def create_user(
 async def read_user_me(
         current_user: User = Depends(get_current_user)
 ):
+    """
+    Return information about the currently authenticated user (based on the Authorization header).
+    """
     return current_user
 
 
@@ -191,6 +200,9 @@ async def read_user_me_permissions(
         current_user: User = Depends(get_current_user),
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Return information about the currently authenticated user's permissions (roles) (based on the Authorization header).
+    """
     roles, _ = await database.get_user_roles(current_user.id, None)
     perms = 0
     for role in roles:
@@ -207,6 +219,9 @@ async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Perform a user log, generating a JWT token for further access.
+    """
     user = await authenticate_user(form_data.username, form_data.password, database)
     if user is None:
         raise HTTPException(
@@ -217,13 +232,13 @@ async def login(
 
     access_token_expires = timedelta(minutes=config.JWT.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={'sub': user.username},
+        data={"sub": user.username},
         expires_delta=access_token_expires
     )
 
     return {
-        'access_token': access_token,
-        'token_type': 'bearer'
+        "access_token": access_token,
+        "token_type": "bearer"
     }
 
 
@@ -236,9 +251,13 @@ async def read_user_details(
         user_id: int,
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Return information about a user by ID.
+    """
     user = await database.get_user(user_id)
     if not user:
         raise GeneralBackendException(404, "User not found")
+
     return user
 
 
@@ -253,6 +272,9 @@ async def update_user(
         database: UserDAL = Depends(get_user_dal),
         current_user: UserDetail = Depends(get_current_user)
 ):
+    """
+    Update user's information by ID. Only owners are allowed to update the account.
+    """
     # TODO: Admin permission
     if user_id != current_user.id:
         raise GeneralBackendException(401, "You are not the owner of this account.")
@@ -270,9 +292,13 @@ async def remove_user(
         user_id: int,
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Delete a registered user.
+    """
     deleted = await database.delete_user(user_id)
     if not deleted:
         raise GeneralBackendException(404, "User not found")
+
     return Message(detail="User deleted")
 
 
@@ -283,11 +309,15 @@ async def read_user_roles(
         user_id: int,
         database: UserDAL = Depends(get_user_dal)
 ):
-    params: QueryParams = req.query_params
-    content, count = await database.get_user_roles(user_id, params)
+    """
+    Return a list of user roles.
+    """
+    content, count = await database.get_user_roles(user_id, req.query_params)
 
     json_content = jsonable_encoder(content)
-    headers = {"X-Total-Count": str(count)}
+    headers = {
+        "X-Total-Count": str(count)
+    }
 
     return JSONResponse(
         content=json_content, headers=headers
@@ -301,6 +331,9 @@ async def add_user_roles(
         role_ids: list[int],
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Add roles to user's permissions.
+    """
     added, msg = await database.create_user_roles(user_id, role_ids)
     if not added:
         raise GeneralBackendException(404, msg)
@@ -314,6 +347,9 @@ async def remove_user_roles(
         role_ids: list[int],
         database: UserDAL = Depends(get_user_dal)
 ):
+    """
+    Remove roles from a user's permissions list.
+    """
     removed, msg = await database.remove_user_roles(user_id, role_ids)
     if not removed:
         raise GeneralBackendException(404, msg)
