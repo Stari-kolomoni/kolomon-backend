@@ -6,16 +6,17 @@ authors = ["Grimpy <gorupgorazd@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = "^0.72.0"
-uvicorn = {extras = ["standard"], version = "^0.17.0"}
-alembic = "^1.7.5"
+fastapi = "^0.78.0"
+uvicorn = {extras = ["standard"], version = "^0.17.6"}
+alembic = "^1.7.7"
 psycopg2 = "^2.9.3"
-SQLAlchemy = {extras = ["asyncio"], version = "^1.4.31"}
+SQLAlchemy = {extras = ["asyncio"], version = "^1.4.36"}
 asyncpg = "^0.25.0"
 python-multipart = "^0.0.5"
 python-jose = "^3.3.0"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 tomli = "^2.0.0"
+pydantic = "^1.9.1"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.12.2"
