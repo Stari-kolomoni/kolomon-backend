@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run Standalone PostgreSQL" type="PowerShellRunType" factoryName="PowerShell" scriptUrl="D:\Simon\GitHub\stari-kolomoni\kolomon-backend\scripts\postgres-start-noninteractive.ps1" workingDirectory="$ProjectFileDir$" executablePath="C:\Program Files\PowerShell\7\pwsh.exe">
+  <configuration default="false" name="Run standalone PostgreSQL" type="PowerShellRunType" factoryName="PowerShell" scriptUrl="D:\Simon\GitHub\stari-kolomoni\kolomon-backend\scripts\postgres-start-noninteractive.ps1" workingDirectory="$ProjectFileDir$" executablePath="C:\Program Files\PowerShell\7\pwsh.exe">
     <envs />
     <method v="2" />
   </configuration>
