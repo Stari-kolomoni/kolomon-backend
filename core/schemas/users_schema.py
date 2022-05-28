@@ -52,7 +52,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(alias='hashed_passcode')
+    password: str
 
     @validator('username')
     def username_must_not_be_empty(cls, v):
