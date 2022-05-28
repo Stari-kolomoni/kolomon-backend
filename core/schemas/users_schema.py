@@ -1,6 +1,6 @@
 import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, validator
 
 
 class RoleBase(BaseModel):
@@ -51,20 +51,21 @@ class UserBase(BaseModel):
         )
 
 
+# noinspection PyMethodParameters
 class UserCreate(UserBase):
     password: str
 
     @validator('username')
-    def username_must_not_be_empty(cls, v):
-        if not v:
+    def username_must_not_be_empty(cls, username: str) -> str:
+        if not username:
             raise ValueError("Username is empty")
-        return v
+        return username
 
     @validator('password')
-    def password_must_not_be_empty(cls, v):
-        if not v:
+    def password_must_not_be_empty(cls, password: str) -> str:
+        if not password:
             raise ValueError("Password is empty")
-        return v
+        return password
 
 
 class UserUpdate(BaseModel):

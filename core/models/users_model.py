@@ -15,10 +15,10 @@ class User(Base):
     modified = Column(DateTime, onupdate=func.now(), nullable=True)
     last_active = Column(DateTime, server_default=func.now())
     is_active = Column(Boolean, default=False)
-    roles = relationship('Role', secondary='role_to_user',
-                         back_populates='users')
+    roles = relationship("Role", secondary="role_to_user",
+                         back_populates="users")
 
-    __mapper__args = {'eager_defaults': True}
+    __mapper__args = {"eager_defaults": True}
 
     def __str__(self):
         return f"User {self.username}"
@@ -38,10 +38,10 @@ class Role(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     permissions = Column(Integer)
-    users = relationship('User', secondary='role_to_user',
-                         back_populates='roles')
+    users = relationship("User", secondary="role_to_user",
+                         back_populates="roles")
 
-    __mapper__args = {'eager_defaults': True}
+    __mapper__args = {"eager_defaults": True}
 
     @staticmethod
     def from_schema(entity):
@@ -54,7 +54,7 @@ class Role(Base):
 class RoleToUser(Base):
     __tablename__ = "role_to_user"
 
-    role_id = Column(Integer, ForeignKey('roles.id', ondelete="CASCADE"), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
 
-    __mapper__args = {'eager_defaults': True}
+    __mapper__args = {"eager_defaults": True}

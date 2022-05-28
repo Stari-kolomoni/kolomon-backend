@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
-from sqlalchemy.orm import relationship
 
 from .database import Base
-import core.schemas.lex_schema as ls
+from ..schemas import lex_schema as ls
 
 
 class Entry(Base):

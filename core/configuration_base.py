@@ -41,8 +41,8 @@ def _get_value_with_placeholders(
     :param table: TOMLConfig table instance.
     :param key: Key to retrieve value for.
     :param placeholder_dict: A dict containing keys as the placeholders to replace.
-    Example: {"TEST": 123} will turn the original value "hello/{TEST}" into "hello/123".
-    Useful for base paths and many dynamic values.
+        Example: {"TEST": 123} will turn the original value "hello/{TEST}" into "hello/123".
+        Useful for base paths and many dynamic values.
     :param allow_empty: Whether to simply return None ony missing (or empty) value.
     :return: A formatted and "clean" string (or possibly None if allow_empty=True).
     """
@@ -130,9 +130,9 @@ class TOMLConfig:
 
         :param name: Key name.
         :param raise_on_missing_key: Whether to fall back to returning None when the key does not exist
-        or to raise a ConfigurationException.
+            or to raise a ConfigurationException.
         :return: TOMLConfig instance with the dict value loaded,
-        or None if the key does not exist (if raise_on_missing_key=False)
+            or None if the key does not exist (if raise_on_missing_key=False)
         """
         data = self.data.get(name)
         if data is None:
@@ -149,7 +149,7 @@ class TOMLConfig:
 
         :param name: Key name.
         :param fallback: If raise_on_missing_key=False and the value at a specific key is None or does not exist,
-        the fallback value will be returned and can be specified using this parameter.
+            the fallback value will be returned and can be specified using this parameter.
         :param raise_on_missing_key: Whether to raise a ConfigurationException on missing configuration keys.
         :return: Value associated with the key or the fallback value (if no exception was raised).
         """
