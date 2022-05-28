@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
 from core.exceptions import GeneralBackendException
-import core.message_types as mt
+import core.schemas.message_types as mt
 from core.models.database import async_session
 from core.schemas.users_schema import Role, RoleCreate, RoleUpdate
 

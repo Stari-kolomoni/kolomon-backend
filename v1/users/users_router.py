@@ -7,16 +7,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from starlette import status
-from starlette.datastructures import QueryParams
 from starlette.responses import JSONResponse
 
 from core.exceptions import GeneralBackendException
-from core.message_types import Message
+from core.schemas.message_types import Message
 from core.models.database import async_session
 from core.configuration import config
 from core.schemas.users_schema import TokenData, User, UserDetail, UserCreate, UserUpdate, Role, UserLogin
 
-import v1.doc_strings as doc_str
 from v1.dependencies import oauth2_scheme
 from v1.users.users_dal import UserDAL
 
@@ -141,15 +139,14 @@ def create_access_token(
 ####
 @router.get("/",
             response_model=list[User],
-            status_code=200,
-            description=doc_str.GET_USERS)
+            status_code=200)
 async def read_users(
         req: Request,
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Get a list of registered users.
-    Can be paginated using the skip and limit query parameters.
+    Retrieves a list of general information about users.
+    Use "limit" and "skip" for pagination.
     """
     content, count = await database.get_users(req.query_params)
 
@@ -166,14 +163,13 @@ async def read_users(
 @router.post("/",
              response_model=UserDetail,
              status_code=201,
-             responses={400: {}},
-             description=doc_str.POST_USER)
+             responses={400: {}})
 async def create_user(
         new_user: UserCreate,
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Create a new user.
+    Creates a new user. Requires username and password, display_name is optional.
     """
     new_user.password = hash_password(new_user.password)
 
@@ -213,14 +209,14 @@ async def read_user_me_permissions(
     }
 
 
-@router.post("/token",
-             description=doc_str.LOGIN)
+@router.post("/token", status_code=200)
 async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         database: UserDAL = Depends(get_user_dal)
 ):
     """
     Perform a user log, generating a JWT token for further access.
+    Uses OAuth2 authentication. Username and password required.
     """
     user = await authenticate_user(form_data.username, form_data.password, database)
     if user is None:
@@ -245,14 +241,13 @@ async def login(
 @router.get("/{user_id}",
             response_model=UserDetail,
             status_code=200,
-            responses={404: {}},
-            description=doc_str.GET_USER)
+            responses={404: {}})
 async def read_user_details(
         user_id: int,
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Return information about a user by ID.
+    Retrieves detailed information about existing user. User ID required.
     """
     user = await database.get_user(user_id)
     if not user:
@@ -264,8 +259,7 @@ async def read_user_details(
 @router.put("/{user_id}",
             response_model=Message,
             status_code=200,
-            responses={404: {}, 400: {}},
-            description=doc_str.PUT_USER)
+            responses={404: {}, 400: {}})
 async def update_user(
         user_data: UserUpdate,
         user_id: int,
@@ -273,7 +267,9 @@ async def update_user(
         current_user: UserDetail = Depends(get_current_user)
 ):
     """
-    Update user's information by ID. Only owners are allowed to update the account.
+    Updates information about existing user, user ID required. Only display_name and password can be changed.
+    No field is required, which makes it similar to PATCH method.
+    Only owners are allowed to update the account.
     """
     # TODO: Admin permission
     if user_id != current_user.id:
@@ -286,14 +282,15 @@ async def update_user(
     return Message(detail=msg)
 
 
-@router.delete("/{user_id}", status_code=200,
-               responses={404: {}}, description=doc_str.DELETE_USER)
+@router.delete("/{user_id}",
+               status_code=200,
+               responses={404: {}})
 async def remove_user(
         user_id: int,
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Delete a registered user.
+    Deletes an existing user, user ID required.
     """
     deleted = await database.delete_user(user_id)
     if not deleted:
@@ -302,15 +299,17 @@ async def remove_user(
     return Message(detail="User deleted")
 
 
-@router.get("/{user_id}/roles", response_model=list[Role], status_code=200,
-            description=doc_str.GET_USER_ROLES)
+@router.get("/{user_id}/roles",
+            response_model=list[Role],
+            status_code=200)
 async def read_user_roles(
         req: Request,
         user_id: int,
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Return a list of user roles.
+    Retrieves roles of existing user, user ID required.
+    Use "limit" and "skip" for pagination.
     """
     content, count = await database.get_user_roles(user_id, req.query_params)
 
@@ -324,15 +323,17 @@ async def read_user_roles(
     )
 
 
-@router.post("/{user_id}/roles", response_model=Message, status_code=200,
-             description=doc_str.POST_USER_ROLES)
+@router.post("/{user_id}/roles",
+             response_model=Message,
+             status_code=200)
 async def add_user_roles(
         user_id: int,
         role_ids: list[int],
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Add roles to user's permissions.
+    Adds new roles to existing user, user ID required.
+    As request body accepts a list of role IDs to append.
     """
     added, msg = await database.create_user_roles(user_id, role_ids)
     if not added:
@@ -340,15 +341,17 @@ async def add_user_roles(
     return Message(detail=msg)
 
 
-@router.delete("/{user_id}/roles", response_model=Message, status_code=200,
-               description=doc_str.DELETE_USER_ROLES)
+@router.delete("/{user_id}/roles",
+               response_model=Message,
+               status_code=200)
 async def remove_user_roles(
         user_id: int,
         role_ids: list[int],
         database: UserDAL = Depends(get_user_dal)
 ):
     """
-    Remove roles from a user's permissions list.
+    Removes roles from existing user, user ID required.
+    As request body accepts a list of role IDs to remove.
     """
     removed, msg = await database.remove_user_roles(user_id, role_ids)
     if not removed:

@@ -2,7 +2,7 @@ from typing import Union
 
 from fastapi import APIRouter, Depends
 
-import core.message_types as mt
+import core.schemas.message_types as mt
 from core.exceptions import GeneralBackendException
 from core.models.database import async_session
 from core.schemas.lex_schema import *
