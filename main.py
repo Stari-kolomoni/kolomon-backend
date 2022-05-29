@@ -31,14 +31,14 @@ async def not_found_exception_handler(_request: Request, exc: GeneralBackendExce
     )
 
 
-@app.on_event('startup')
+@app.on_event("startup")
 async def startup():
     logger.info("Starting up...")
     await connect_db()
     logger.info("Database connected!")
 
 
-@app.on_event('shutdown')
+@app.on_event("shutdown")
 async def shutdown():
     await disconnect_db()
     logger.info("Database disconnected!")
