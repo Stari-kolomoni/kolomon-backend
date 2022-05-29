@@ -26,7 +26,7 @@ Built on top of the following main technologies:
 - [Uvicorn](https://www.uvicorn.org/) web server
 - [JWT tokens](https://jwt.io/) for authentication
 
-## 1.1 Project structure
+## 1.1 Structure
 The components are split into different parts based on their function. 
 The root directory contains:
  - `main.py` - the main script that defines the top-level FastAPI application. 
