@@ -1,7 +1,21 @@
-# Stari Kolomoni (Backend)
+<h1 align="center">
+    Stari Kolomoni (Backend)
+</h1>
 
-![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-4584b6?logo=python&logoColor=white)
-![Package Manager: Poetry](https://img.shields.io/badge/package%20manager-Poetry-007fc7?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABH5JREFUeNqsV11rXEUYfmbmnGz3eyvolZVY0QuvAqLEFC9CsQZRJDdCVZDilZf+g+YHVBtvRFC0iEq1FwuCd2UjKBG1dWMxjZuSbEiy2Xw1S4wk3c2e8T1fu3PmnOzZFYfMzszO2Xme93k/5oRBaec+mZfLo0+hZjFASsDyujO3umvLW0ttbenPWdH7Fx9nPiZXCfz0xw6e+62CR9F2D7c7vNGbuk12Bwl1Q2nKb2TUfgQBEK9ieQej5Xs4wyzlAPXQCDIqUNRvENif6UkAnOHGrS08X17EGW51XRAA1pSBrsLJFscq4HTTwDe/72Dszj08JhRfd1yiyd8hpxGNmgPlHgSY12meMHH91jbOLyzjXFI5PKBIBHAwOKIUmYtXgHmTVAKf/VzHk39WMZZiYYuiYiJktU5SxsRAh4h3YjaJz2dreOLuCkaTSnrqIOghf1eBKt48W+1DAXRdYfdcCl/MruFsZRXPpnR3eOdbiHZNMEuKvYMwoILsEqDMQC6Dr2bXMby4jvM5roGd0AF9fS0+CzojC8oi6NF8Gt/+UkN2YQ2vnRYRQan7PhAfMyR/OUYBLwugukFxhUGPp0+heLuO1vw6JnQSVi8icqqPOiC70ndEUFxhf1B64pSJ7+c20bpbw3heBIEsGREj0rZ+pr9ChAhwP4r9zEgmHCI357fRqmxgLCe0i0tPP7zXXyVUMwGKEiozf59UgBD4sbKL1mIdLxQMmAxRwTiFt8K+j1FAaoAy6Ca/alKhsjPk1+U9NCp1PJMVMPzId1Uok/SX+78LQir0+K6jhEvizuo+7i9u4ukUh3BJNMiOycEuo1AKRtxs+kUn6Nkh0/lJpX6AxtI2hhPMBh8n6atxBIwTd1iUW1hQCX+0a4R9VLuN1ZVdZG/ermaOmtWDga/jE1NChl2iP2oIsMMmkpUqZFuOGPl8qXDx68J/IKBc9sw3nGnSa36ggBP1XaT/WoZpmjAyaTCDjzDBSw+9faMwAAEZnjKEM0D96qiJxFIN6ZUNmOkUBHVmq0EpSuMI47z08DvFwoBp6INp6SgVcq1jmGtbyMwvIbl/ACOXBadg5ATOSQVu0mgY9nqE1Cg98u53hcGC0AFiYd83WzC395DYuk8JwMApDRm9wpGl5CnmjHZaMuUNi/6GifOw/joWQUAGwbl07/njFoy9fRiNv2H8c0gFUASA7VTkDgEX3CHAuV+vysTm0uaHL5djFWA7ew1SvoDjNvjhEXjbAn/QhDh64MjLhobAU0nPx9y12u/Ct95e+7coowtITtavTjT6qgPm3MI4N4dKZFnBto4Lw7Uym3UBO104IAES3ty13gGf2nj/wuW4NAxld+qlj530oV5wgAKAQiPhWa4QIQJVioVLtSsvzvTzf0Fkecm88qlHQhQClnM7tVwgTgQgmEqkQcDTtT6sjiXgvAxPXusowXXLgyo0CHyajrq68cGFBgZsvQos8q9/6RQSxx2Ga7VCoEx70yR5sT49MTBwXwTsdvqN674SNugM9R+oF7c+erWK/6H9K8AAjNFYo5qYUdkAAAAASUVORK5CYII=)
+<p align="center">
+    <span align="center">
+        <a href="https://www.python.org/">
+            <img src="https://img.shields.io/badge/python-3.9%2B-4584b6?logo=python&logoColor=white"
+                 alt="Python 3.9+" />
+        </a>
+    </span>
+    <span align="center">
+        <a href="https://python-poetry.org/">
+            <img src="https://img.shields.io/badge/package%20manager-Poetry-007fc7?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABH5JREFUeNqsV11rXEUYfmbmnGz3eyvolZVY0QuvAqLEFC9CsQZRJDdCVZDilZf+g+YHVBtvRFC0iEq1FwuCd2UjKBG1dWMxjZuSbEiy2Xw1S4wk3c2e8T1fu3PmnOzZFYfMzszO2Xme93k/5oRBaec+mZfLo0+hZjFASsDyujO3umvLW0ttbenPWdH7Fx9nPiZXCfz0xw6e+62CR9F2D7c7vNGbuk12Bwl1Q2nKb2TUfgQBEK9ieQej5Xs4wyzlAPXQCDIqUNRvENif6UkAnOHGrS08X17EGW51XRAA1pSBrsLJFscq4HTTwDe/72Dszj08JhRfd1yiyd8hpxGNmgPlHgSY12meMHH91jbOLyzjXFI5PKBIBHAwOKIUmYtXgHmTVAKf/VzHk39WMZZiYYuiYiJktU5SxsRAh4h3YjaJz2dreOLuCkaTSnrqIOghf1eBKt48W+1DAXRdYfdcCl/MruFsZRXPpnR3eOdbiHZNMEuKvYMwoILsEqDMQC6Dr2bXMby4jvM5roGd0AF9fS0+CzojC8oi6NF8Gt/+UkN2YQ2vnRYRQan7PhAfMyR/OUYBLwugukFxhUGPp0+heLuO1vw6JnQSVi8icqqPOiC70ndEUFxhf1B64pSJ7+c20bpbw3heBIEsGREj0rZ+pr9ChAhwP4r9zEgmHCI357fRqmxgLCe0i0tPP7zXXyVUMwGKEiozf59UgBD4sbKL1mIdLxQMmAxRwTiFt8K+j1FAaoAy6Ca/alKhsjPk1+U9NCp1PJMVMPzId1Uok/SX+78LQir0+K6jhEvizuo+7i9u4ukUh3BJNMiOycEuo1AKRtxs+kUn6Nkh0/lJpX6AxtI2hhPMBh8n6atxBIwTd1iUW1hQCX+0a4R9VLuN1ZVdZG/ermaOmtWDga/jE1NChl2iP2oIsMMmkpUqZFuOGPl8qXDx68J/IKBc9sw3nGnSa36ggBP1XaT/WoZpmjAyaTCDjzDBSw+9faMwAAEZnjKEM0D96qiJxFIN6ZUNmOkUBHVmq0EpSuMI47z08DvFwoBp6INp6SgVcq1jmGtbyMwvIbl/ACOXBadg5ATOSQVu0mgY9nqE1Cg98u53hcGC0AFiYd83WzC395DYuk8JwMApDRm9wpGl5CnmjHZaMuUNi/6GifOw/joWQUAGwbl07/njFoy9fRiNv2H8c0gFUASA7VTkDgEX3CHAuV+vysTm0uaHL5djFWA7ew1SvoDjNvjhEXjbAn/QhDh64MjLhobAU0nPx9y12u/Ct95e+7coowtITtavTjT6qgPm3MI4N4dKZFnBto4Lw7Uym3UBO104IAES3ty13gGf2nj/wuW4NAxld+qlj530oV5wgAKAQiPhWa4QIQJVioVLtSsvzvTzf0Fkecm88qlHQhQClnM7tVwgTgQgmEqkQcDTtT6sjiXgvAxPXusowXXLgyo0CHyajrq68cGFBgZsvQos8q9/6RQSxx2Ga7VCoEx70yR5sT49MTBwXwTsdvqN674SNugM9R+oF7c+erWK/6H9K8AAjNFYo5qYUdkAAAAASUVORK5CYII=" 
+                 alt="Python Package Manager: Poetry" />
+        </a>
+    </span>
+</p>
 
 ---
 
