@@ -5,11 +5,51 @@
 ---
 
 ## 1. Project architecture
-The Stari Kolomoni backend is build on top of the following technologies:
+The *Stari Kolomoni* backend is build on top of the following technologies:
 - FastAPI REST (SQLAlchemy for database models, alembic for migrations)
 - PostgreSQL (database)
 - Uvicorn (web server)
 - JWT tokens for authentication
+
+## 1.1 Project structure
+The components are split into different parts based on their function. The root directory contains:
+ - `main.py` - Main script that starts the server. Contains FastAPI and logging initialization, as well as basic API endpoints (i.e. `ping`).
+ - `/v1/` - Contains the API logic and DALs (Data Access Layers) for API version 1.
+ - `/tests/` - Contains unit and coverage tests.
+ - `/scripts/` - Contains convenience shell scripts for different running or initialization tasks.
+ - `/data/` - Contains custom local settings for running on specific system or machine.
+ - `/core/` - Contains core models, schemas and functions used in backend.
+
+---
+
+### `/v1/` component
+In this folder, the API logic is present. The API is, for the ease of management, split into modules.
+
+The file `api.py` combines and registers endpoints from all modules.
+
+More about `dependencies.py` can be found [here](https://fastapi.tiangolo.com/tutorial/dependencies/).
+
+`doc_string.py` is an inconvenient way the user-friendly text descriptions are stored
+(has to be changed later to something more manageable).
+
+Each module is stored in its own directory. It contains DALs (Data Access Layers), which form and send database requests,
+and routers, which expose endpoints and check data before processing.
+Current modules are:
+ - `lex` - The lexicon part of the application; In charge of handling terms, suggestions and translations.
+ - `users` - In charge of registration, login, authentication and user management.
+
+---
+
+### `/tests/` component
+-- Work in progress --
+
+---
+
+### `/core/` component
+Stores logging procedures (`log.py`), database connection and persistent data handling (`/models/`),
+data schemas (`/schemas/`) and exception handlers (`exceptions.py`). Different additional configurations
+are managed in `configuration.py` and `configuration_base.py`.
+
 
 ## 2. Development
 Prerequisites:
