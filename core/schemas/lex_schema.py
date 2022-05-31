@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel
 
@@ -15,6 +15,13 @@ class EventCreate(BaseModel):
 class LinkCreate(BaseModel):
     title: Optional[str]
     url: str
+
+
+class EntryCreate(BaseModel):
+    lemma: str
+    description: Optional[str]
+    language: Optional[str]
+    additional_info: Optional[Dict[str, str]]
 
 
 class Link(BaseModel):
@@ -35,12 +42,6 @@ class Link(BaseModel):
 class TranslationState(BaseModel):
     id: int
     label: str
-
-
-class EntryCreate(BaseModel):
-    lemma: str
-    description: Optional[str]
-    language: Optional[str]
 
 
 class EntryMinimal(BaseModel):

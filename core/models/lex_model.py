@@ -1,4 +1,8 @@
+from typing import Optional
+
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from .database import Base
 from ..schemas import lex_schema as ls
@@ -16,15 +20,82 @@ class Entry(Base):
 
     __mapper__args = {'eager_defaults': True}
 
+    async def save(self, db_session: Session):
+        insert_sql = text("INSERT INTO entries (lemma, description, language) "
+                          "VALUES (:lemma, :description, :language)")
+        try:
+            result = await db_session.execute(
+                insert_sql,
+                {
+                    "lemma": self.lemma,
+                    "description": self.description,
+                    "language": self.language
+                }
+            )
+
+            await db_session.commit()
+            self.id = result.inserted_primary_key[0]
+            db_session.flush()
+
+        except Exception as e:
+            db_session.rollback()
+            raise e
+
+    async def update(self, db_session: Session):
+        update_sql = text("UPDATE entries "
+                          "SET lemma = :lemma, description = :description, modified = NOW() "
+                          "WHERE id = :id")
+        try:
+            result = await db_session.execute(
+                update_sql,
+                {
+                    "lemma": self.lemma,
+                    "description": self.description,
+                    "id": self.id
+                }
+            )
+
+            affected_rows_count = result.rowcount
+            if affected_rows_count > 0:
+                await db_session.flush()
+            else:
+                await db_session.rollback()
+
+        except Exception as e:
+            await db_session.rollback()
+            raise e
+
+    async def delete(self, db_session: Session):
+        delete_sql = text("DELETE FROM entries WHERE id = :id")
+        await db_session.execute(
+            delete_sql,
+            {
+                "id": self.id
+            }
+        )
+        await db_session.flush()
+
     @staticmethod
-    def from_schema(entry_scheme: ls.EntryCreate):
-        if entry_scheme.lemma == "":
+    async def retrieve(entry_id: int, db_session: Session) -> Optional['Entry']:
+        get_sql = text("SELECT * FROM entries e WHERE e.id = :id")
+        result = await db_session.execute(
+            get_sql,
+            {
+                "id": entry_id
+            }
+        )
+
+        row = result.first()
+        if not row:
             return None
 
         entry = Entry(
-            lemma=entry_scheme.lemma,
-            description=entry_scheme.description,
-            language=entry_scheme.language
+            id=row[0],
+            lemma=row[1],
+            description=row[2],
+            language=row[3],
+            created=row[4],
+            modified=row[5]
         )
         return entry
 
@@ -37,16 +108,18 @@ class Link(Base):
     url = Column(String, index=True)
     entry_id = Column(Integer, ForeignKey('entries.id'))
 
+    async def save(self, db_session: Session):
+        pass
+
+    async def update(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
     @staticmethod
-    def from_schema_from_id(link_scheme: ls.LinkCreate, entry_id):
-        if link_scheme.url == "":
-            return None
-        link = Link(
-            title=link_scheme.title,
-            url=link_scheme.url,
-            entry_id=entry_id
-        )
-        return link
+    async def retrieve(entry_id: int, db_session: Session) -> Optional['Entry']:
+        pass
 
 
 class Category(Base):
