@@ -37,7 +37,6 @@ The root directory contains:
  - `data` - local configuration and other persistent data,
  - `core` - core models, schemas and functions used in the entire backend.
 
----
 
 ### `v1` module
 In this folder, the API logic is present. The API is, for the ease of management, split into modules.
@@ -55,12 +54,22 @@ Current modules are:
  - `lex` - The lexicon part of the application; In charge of handling terms, suggestions and translations.
  - `users` - In charge of registration, login, authentication and user management.
 
----
 
 ### `tests` module
-> Work in progress 😌
 
----
+Tests are divided into categories:
+ - `model_tests` - concerning model and database fetching behaviour
+ - `logic_tests` - concerning server general logic
+ - `v1` - concerning API endpoint and schemas behaviour
+
+The tool used for testing is `pytest`. Tests are run by executing
+```
+> pytest
+```
+in command line. The database is cleaned before and after testing.
+
+Currently, the tests are executed on development database. *(TODO: Should it be reasonable to add a testing database?)*
+
 
 ### `core` module
 Logging configuration (`log.py`), database connection and persistent data (`models`),
