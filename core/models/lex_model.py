@@ -2,9 +2,13 @@ from typing import Optional, List
 
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.orm import Session
-from sqlalchemy import text, insert
+from sqlalchemy import text, insert, update, delete, desc
+from sqlalchemy.future import select
 
 from .database import Base
+
+
+LIMIT_SIZE = 25
 
 
 class Entry(Base):
@@ -16,6 +20,7 @@ class Entry(Base):
     language = Column(String, nullable=True)
     created = Column(DateTime, server_default=func.now())
     modified = Column(DateTime, onupdate=func.now(), nullable=True)
+    extra_data = {}
 
     __mapper__args = {'eager_defaults': True}
 
@@ -30,36 +35,127 @@ class Entry(Base):
             return False
         return True
 
+    def __repr__(self):
+        return f"Entry[{self.id}]: {self.lemma}"
+
     async def save(self, db_session: Session):
         stmt = insert(Entry).values(
             lemma=self.lemma,
             description=self.description,
             language=self.language
         )
-        try:
-            result = await db_session.execute(
-                stmt
-            )
+        result = await db_session.execute(stmt)
+        await db_session.flush()
+        self.id = result.inserted_primary_key[0]
 
+        if self.language == 'sl':
+            alt_form = self.extra_data.get('alternative_form', None)
+            await Slovene(
+                id=self.id,
+                alt_form=alt_form
+            ).save(db_session)
+        elif self.language == 'en':
+            await English(
+                id=self.id
+            ).save(db_session)
+
+    async def update(self, db_session: Session) -> int:
+        stmt = update(Entry).values({
+            "lemma": self.lemma,
+            "description": self.description,
+            "language": self.language
+        }).where(Entry.id == self.id)
+
+        result = await db_session.execute(stmt)
+        return result.rowcount
+
+    @staticmethod
+    async def delete(entry_id: int, db_session: Session):
+        stmt = delete(Entry).where(Entry.id == entry_id)
+        await db_session.execute(stmt)
+
+    @staticmethod
+    async def retrieve_by_id(entry_id: int, db_session: Session) -> Optional['Entry']:
+        stmt = select(Entry).where(Entry.id == entry_id)
+        result = await db_session.execute(stmt)
+
+        entry: Optional[Entry] = result.scalars().first()
+        if not entry:
+            return None
+
+        if entry.language == 'sl':
+            slovene = await Slovene.retrieve_by_id(entry.id, db_session)
+            if slovene:
+                entry.extra_data = {
+                    "alternative_form": slovene.alt_form
+                }
+
+        return entry
+
+    @staticmethod
+    async def retrieve_all(filters: dict, db_session: Session) -> List['Entry']:
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+        sort: str = filters.get('sort', '')
+
+        stmt = select(Entry)
+
+        sort_list = []
+        if "-lemma" in sort:
+            sort_list.append(desc("lemma"))
+        elif "lemma" in sort:
+            sort_list.append("lemma")
+        if "-description" in sort:
+            sort_list.append(desc("description"))
+        elif "description" in sort:
+            sort_list.append("description")
+        if "-language" in sort:
+            sort_list.append(desc("language"))
+        elif "language" in sort:
+            sort_list.append("language")
+        stmt = stmt.order_by(*sort_list)
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await db_session.execute(stmt)
+
+        entries = result.all()
+        return entries
+
+
+class Link(Base):
+    __tablename__ = "links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=True)
+    url = Column(String, index=True)
+    entry_id = Column(Integer, ForeignKey('entries.id'))
+
+    async def save(self, db_session: Session):
+        stmt = insert(Link).values(
+            title=self.title,
+            url=self.url,
+            entry_id=self.entry_id
+        )
+        try:
+            result = await db_session.execute(stmt)
             await db_session.flush()
             self.id = result.inserted_primary_key[0]
             await db_session.commit()
-
         except Exception as e:
             await db_session.rollback()
             raise e
 
     async def update(self, db_session: Session):
-        update_sql = text("UPDATE entries "
-                          "SET lemma = :lemma, description = :description, modified = NOW() "
+        update_sql = text("UPDATE links "
+                          "SET title = :title, url = :url, entry_id = :entry_id "
                           "WHERE id = :id")
         try:
             result = await db_session.execute(
                 update_sql,
                 {
-                    "lemma": self.lemma,
-                    "description": self.description,
-                    "id": self.id
+                    "title": self.title,
+                    "url": self.url,
+                    "entry_id": self.entry_id
                 }
             )
 
@@ -73,57 +169,16 @@ class Entry(Base):
             await db_session.rollback()
             raise e
 
-    async def delete(self, db_session: Session):
-        delete_sql = text("DELETE FROM entries WHERE id = :id")
+    @staticmethod
+    async def delete(entry_id: int, db_session: Session):
+        delete_sql = text("DELETE FROM links WHERE id = :id")
         await db_session.execute(
             delete_sql,
-            {
-                "id": self.id
-            }
-        )
-        await db_session.commit()
-
-    @staticmethod
-    async def retrieve(entry_id: int, db_session: Session) -> Optional['Entry']:
-        get_sql = text("SELECT * FROM entries e WHERE e.id = :id")
-        result = await db_session.execute(
-            get_sql,
             {
                 "id": entry_id
             }
         )
-
-        row = result.first()
-        if not row:
-            return None
-
-        entry = Entry(
-            id=row[0],
-            lemma=row[1],
-            description=row[2],
-            language=row[3],
-            created=row[4],
-            modified=row[5]
-        )
-        return entry
-
-
-class Link(Base):
-    __tablename__ = "links"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=True)
-    url = Column(String, index=True)
-    entry_id = Column(Integer, ForeignKey('entries.id'))
-
-    async def save(self, db_session: Session):
-        pass
-
-    async def update(self, db_session: Session):
-        pass
-
-    async def delete(self, db_session: Session):
-        pass
+        await db_session.commit()
 
     @staticmethod
     async def retrieve_by_entry(entry_id: int, db_session: Session) -> List['Link']:
@@ -167,7 +222,11 @@ class Slovene(Base):
     alt_form = Column(String, nullable=True)
 
     async def save(self, db_session: Session):
-        pass
+        stmt = insert(Slovene).values(
+            id=self.id,
+            alt_form=self.alt_form
+        )
+        await db_session.execute(stmt)
 
     async def update(self, db_session: Session):
         pass
@@ -176,8 +235,14 @@ class Slovene(Base):
         pass
 
     @staticmethod
-    async def retrieve_by_id(entry_id: int, db_session: Session) -> Optional['Slovene']:
-        pass
+    async def retrieve_by_id(slovene_id: int, db_session: Session) -> Optional['Slovene']:
+        stmt = select(Slovene).where(Slovene.id == slovene_id)
+        result = await db_session.execute(stmt)
+
+        entry = result.scalars().first()
+        if not entry:
+            return None
+        return entry
 
 
 class English(Base):
@@ -187,7 +252,10 @@ class English(Base):
                 primary_key=True)
 
     async def save(self, db_session: Session):
-        pass
+        stmt = insert(English).values(
+            id=self.id
+        )
+        await db_session.execute(stmt)
 
     async def update(self, db_session: Session):
         pass

@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.exceptions import GeneralBackendException
+from core.models.lex_model import Entry
 from core.schemas.message_types import Message
 from core.models.database import connect_db, disconnect_db
 from core.log import init_logger, logger
