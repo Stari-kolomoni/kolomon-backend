@@ -1,11 +1,10 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, insert
 
 from .database import Base
-from ..schemas import lex_schema as ls
 
 
 class Entry(Base):
@@ -20,25 +19,34 @@ class Entry(Base):
 
     __mapper__args = {'eager_defaults': True}
 
+    def __eq__(self, other):
+        if not isinstance(self, other.__class__):
+            return False
+
+        if (self.lemma != other.lemma
+                or self.description != other.description
+                or self.id != other.id
+                or self.language != other.language):
+            return False
+        return True
+
     async def save(self, db_session: Session):
-        insert_sql = text("INSERT INTO entries (lemma, description, language) "
-                          "VALUES (:lemma, :description, :language)")
+        stmt = insert(Entry).values(
+            lemma=self.lemma,
+            description=self.description,
+            language=self.language
+        )
         try:
             result = await db_session.execute(
-                insert_sql,
-                {
-                    "lemma": self.lemma,
-                    "description": self.description,
-                    "language": self.language
-                }
+                stmt
             )
 
-            await db_session.commit()
+            await db_session.flush()
             self.id = result.inserted_primary_key[0]
-            db_session.flush()
+            await db_session.commit()
 
         except Exception as e:
-            db_session.rollback()
+            await db_session.rollback()
             raise e
 
     async def update(self, db_session: Session):
@@ -57,7 +65,7 @@ class Entry(Base):
 
             affected_rows_count = result.rowcount
             if affected_rows_count > 0:
-                await db_session.flush()
+                await db_session.commit()
             else:
                 await db_session.rollback()
 
@@ -73,7 +81,7 @@ class Entry(Base):
                 "id": self.id
             }
         )
-        await db_session.flush()
+        await db_session.commit()
 
     @staticmethod
     async def retrieve(entry_id: int, db_session: Session) -> Optional['Entry']:
@@ -118,7 +126,11 @@ class Link(Base):
         pass
 
     @staticmethod
-    async def retrieve(entry_id: int, db_session: Session) -> Optional['Entry']:
+    async def retrieve_by_entry(entry_id: int, db_session: Session) -> List['Link']:
+        pass
+
+    @staticmethod
+    async def retrieve_by_id(link_id: int, db_session: Session) -> Optional['Link']:
         pass
 
 
@@ -129,6 +141,23 @@ class Category(Base):
     name = Column(String, index=True)
     description = Column(String, nullable=True)
 
+    async def save(self, db_session: Session):
+        pass
+
+    async def update(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_entry(entry_id: int, db_session: Session) -> List['Category']:
+        pass
+
+    @staticmethod
+    async def retrieve_by_id(category_id: int, db_session: Session) -> Optional['Category']:
+        pass
+
 
 class Slovene(Base):
     __tablename__ = "slovene"
@@ -137,12 +166,38 @@ class Slovene(Base):
                 primary_key=True)
     alt_form = Column(String, nullable=True)
 
+    async def save(self, db_session: Session):
+        pass
+
+    async def update(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_id(entry_id: int, db_session: Session) -> Optional['Slovene']:
+        pass
+
 
 class English(Base):
     __tablename__ = "english"
 
     id = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
                 primary_key=True)
+
+    async def save(self, db_session: Session):
+        pass
+
+    async def update(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_id(entry_id: int, db_session: Session) -> Optional['English']:
+        pass
 
 
 class Suggestion(Base):
@@ -152,6 +207,20 @@ class Suggestion(Base):
                     primary_key=True)
     child = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
                    primary_key=True)
+
+    async def save(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_parent(entry_id: int, db_session: Session) -> List['Entry']:
+        pass
+
+    @staticmethod
+    async def retrieve_by_child(entry_id: int, db_session: Session) -> List['Entry']:
+        pass
 
 
 class Translation(Base):
@@ -164,12 +233,39 @@ class Translation(Base):
     state = Column(Integer, ForeignKey('translation_states.id',
                                        ondelete="SET NULL"))
 
+    async def save(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_parent(parent_id: int, db_session: Session) -> Optional['Entry']:
+        pass
+
+    @staticmethod
+    async def retrieve_by_child(child_id: int, db_session: Session) -> Optional['Entry']:
+        pass
+
 
 class TranslationState(Base):
     __tablename__ = "translation_states"
 
     id = Column(Integer, primary_key=True, index=True)
     label = Column(String)
+
+    async def save(self, db_session: Session):
+        pass
+
+    async def update(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_id(state_id: int, db_session: Session) -> Optional['TranslationState']:
+        pass
 
 
 class Relation(Base):
@@ -179,6 +275,20 @@ class Relation(Base):
                     primary_key=True)
     entry2 = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
                     primary_key=True)
+
+    async def save(self, db_session: Session):
+        pass
+
+    async def delete(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve_by_entry1(entry1: int, db_session: Session) -> List['Entry']:
+        pass
+
+    @staticmethod
+    async def retrieve_by_entry2(entry1: int, db_session: Session) -> List['Entry']:
+        pass
 
 
 class CategoryToEntry(Base):
@@ -200,3 +310,10 @@ class Event(Base):
     user_id = Column(Integer)
     username = Column(String)
     time = Column(DateTime, server_default=func.now())
+
+    async def save(self, db_session: Session):
+        pass
+
+    @staticmethod
+    async def retrieve(filters: dict, db_session: Session) -> Optional['Event']:
+        pass

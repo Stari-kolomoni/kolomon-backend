@@ -16,6 +16,8 @@ python-jose = "^3.3.0"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 tomli = "^2.0.0"
 pydantic = "^1.9.1"
+pytest = "^7.1.2"
+pytest-asyncio = "^0.18.3"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.12.2"
@@ -23,3 +25,8 @@ pylint = "^2.12.2"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+console_output_style = "progress"
+testpaths = ["tests"]
+asyncio_mode = "strict"

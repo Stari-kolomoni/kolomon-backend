@@ -18,6 +18,20 @@ class _DatabaseConfiguration:
         self.DATABASE_NAME = database_table.get("database_name", raise_on_missing_key=True)
 
 
+class _TestDatabaseConfiguration:
+    """
+    A smaller portion of the configuration.
+    This class parses values in the "database_test" table.
+    """
+    def __init__(self, database_table: TOMLConfig):
+        self.HOST = database_table.get("host", raise_on_missing_key=True)
+        self.PORT = database_table.get("port", raise_on_missing_key=True)
+
+        self.USER = database_table.get("user", raise_on_missing_key=True)
+        self.PASSWORD = database_table.get("password", raise_on_missing_key=True)
+        self.DATABASE_NAME = database_table.get("database_name", raise_on_missing_key=True)
+
+
 class _JWTConfiguration:
     """
     A smaller portion of the configuration.
@@ -42,6 +56,7 @@ class KolomoniConfiguration:
 
         ### Pass individual tables around to each specific "group" of the configuration.
         self.DATABASE = _DatabaseConfiguration(self._database)
+        self.TEST_DATABASE = _TestDatabaseConfiguration(self._database)
         self.JWT = _JWTConfiguration(self._jwt)
 
     @classmethod

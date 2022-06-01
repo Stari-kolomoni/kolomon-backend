@@ -7,7 +7,7 @@ DATABASE_URL = f"postgresql+asyncpg://" \
                f"{config.DATABASE.USER}:{config.DATABASE.PASSWORD}" \
                f"@{config.DATABASE.HOST}/{config.DATABASE.DATABASE_NAME}"
 
-# TODO: Add SSL = True in production!
+# TODO: Add SSL = True in deployment!
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 async_session = sessionmaker(
