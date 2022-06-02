@@ -42,6 +42,7 @@ class EntryDAL:
         await models.Suggestion.delete(original_term, translation, self.db_session)
 
     async def add_translation(self, original_term, translation, state):
+        await models.Translation.delete(original_term, self.db_session)
         await models.Translation.save(original_term, translation, state, self.db_session)
 
     async def manage_translation_state(self, original_term, translation, state):
