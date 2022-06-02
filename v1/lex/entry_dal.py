@@ -1,8 +1,5 @@
-import traceback
 from typing import Optional
 
-from sqlalchemy import text, func
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import core.models.lex_model as models
@@ -18,9 +15,36 @@ class EntryDAL:
         await entry.save(self.db_session)
 
     async def retrieve_entries(self, filters):
-        entries = await models.Entry.retrieve_all(filters, self.db_session)
-        return entries
+        entries, count = await models.Entry.retrieve_all(filters, self.db_session)
+        schema_entries = schemas.Entry.list_from_model(entries)
+        schema = schemas.EntryList(
+            entries=schema_entries,
+            full_count=count
+        )
+        return schema
 
     async def retrieve_entry_by_id(self, entry_id):
         entry = await models.Entry.retrieve_by_id(entry_id, self.db_session)
-        return entry
+        suggestions = await models.Suggestion.retrieve_by_parent(entry_id, self.db_session)
+        translation, state = await models.Translation.retrieve_by_parent(entry_id, self.db_session)
+
+        schema = schemas.EntryDetail.from_models(entry, suggestions, translation, state)
+        return schema
+
+    async def add_suggestion(self, original_term, translation):
+        await models.Suggestion.save(original_term, translation, self.db_session)
+
+    async def remove_suggestion(self, original_term, translation):
+        await models.Suggestion.delete(original_term, translation, self.db_session)
+
+    async def add_translation(self, original_term, translation, state):
+        await models.Translation.save(original_term, translation, state, self.db_session)
+
+    async def remove_translation(self, original_term):
+        await models.Translation.delete(original_term, self.db_session)
+
+    async def add_relation(self, entry1, entry2):
+        await models.Relation.save(entry1, entry2, self.db_session)
+
+    async def remove_relation(self, entry1, entry2):
+        await models.Relation.delete(entry1, entry2, self.db_session)

@@ -1,8 +1,8 @@
 from typing import Optional, List
 
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, text
 from sqlalchemy.orm import Session
-from sqlalchemy import text, insert, update, delete, desc
+from sqlalchemy import insert, update, delete, desc, and_
 from sqlalchemy.future import select
 
 from .database import Base
@@ -39,6 +39,14 @@ class Entry(Base):
         return f"Entry[{self.id}]: {self.lemma}"
 
     async def save(self, db_session: Session):
+        """
+        Saves to the database the Entry on which the method is executed.
+        After successful execution, the 'id' property of this Entry
+        is populated with the value assigned to the record in the database.
+        NOTE: properties 'created' and 'modified' are not populated,
+        a separate retrieval is needed for that.
+        """
+
         stmt = insert(Entry).values(
             lemma=self.lemma,
             description=self.description,
@@ -62,8 +70,7 @@ class Entry(Base):
     async def update(self, db_session: Session) -> int:
         stmt = update(Entry).values({
             "lemma": self.lemma,
-            "description": self.description,
-            "language": self.language
+            "description": self.description
         }).where(Entry.id == self.id)
 
         result = await db_session.execute(stmt)
@@ -93,7 +100,11 @@ class Entry(Base):
         return entry
 
     @staticmethod
-    async def retrieve_all(filters: dict, db_session: Session) -> List['Entry']:
+    async def retrieve_all(filters: dict, db_session: Session) -> (List['Entry'], int):
+        count_stmt = select(func.count(Entry.id))
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
+
         offset: int = filters.get('offset', 0)
         limit: int = filters.get('limit', LIMIT_SIZE)
         sort: str = filters.get('sort', '')
@@ -118,8 +129,8 @@ class Entry(Base):
 
         result = await db_session.execute(stmt)
 
-        entries = result.all()
-        return entries
+        entries = result.scalars().all()
+        return entries, count
 
 
 class Link(Base):
@@ -136,57 +147,35 @@ class Link(Base):
             url=self.url,
             entry_id=self.entry_id
         )
-        try:
-            result = await db_session.execute(stmt)
-            await db_session.flush()
-            self.id = result.inserted_primary_key[0]
-            await db_session.commit()
-        except Exception as e:
-            await db_session.rollback()
-            raise e
+        result = await db_session.execute(stmt)
+        await db_session.flush()
+        self.id = result.inserted_primary_key[0]
 
-    async def update(self, db_session: Session):
-        update_sql = text("UPDATE links "
-                          "SET title = :title, url = :url, entry_id = :entry_id "
-                          "WHERE id = :id")
-        try:
-            result = await db_session.execute(
-                update_sql,
-                {
-                    "title": self.title,
-                    "url": self.url,
-                    "entry_id": self.entry_id
-                }
-            )
-
-            affected_rows_count = result.rowcount
-            if affected_rows_count > 0:
-                await db_session.commit()
-            else:
-                await db_session.rollback()
-
-        except Exception as e:
-            await db_session.rollback()
-            raise e
+    async def update(self, db_session: Session) -> int:
+        pass
 
     @staticmethod
-    async def delete(entry_id: int, db_session: Session):
-        delete_sql = text("DELETE FROM links WHERE id = :id")
-        await db_session.execute(
-            delete_sql,
-            {
-                "id": entry_id
-            }
-        )
-        await db_session.commit()
+    async def delete(link_id: int, db_session: Session):
+        stmt = delete(Link).where(Link.id == link_id)
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_entry(entry_id: int, db_session: Session) -> List['Link']:
-        pass
+        stmt = select(Link).where(Link.entry_id == entry_id)
+        result = await db_session.execute(stmt)
+
+        links: List[Link] = result.scalars().all()
+        return links
 
     @staticmethod
     async def retrieve_by_id(link_id: int, db_session: Session) -> Optional['Link']:
-        pass
+        stmt = select(Link).where(Link.id == link_id)
+        result = await db_session.execute(stmt)
+
+        link: Optional[Link] = result.scalars().all()
+        if not link:
+            return None
+        return link
 
 
 class Category(Base):
@@ -196,22 +185,55 @@ class Category(Base):
     name = Column(String, index=True)
     description = Column(String, nullable=True)
 
+    def __repr__(self):
+        return f"Category[{self.id}]: {self.name}"
+
     async def save(self, db_session: Session):
-        pass
+        """
+        Saves to the database the Category on which the method is executed.
+        After successful execution, the 'id' property of this Category
+        is populated with the value assigned to the record in the database.
+        """
+
+        stmt = insert(Category).values(
+            name=self.name,
+            description=self.description
+        )
+        result = await db_session.execute(stmt)
+        await db_session.flush()
+        self.id = result.inserted_primary_key[0]
 
     async def update(self, db_session: Session):
-        pass
+        stmt = update(Category).values({
+            "name": self.name,
+            "description": self.description
+        }).where(Category.id == self.id)
+        result = await db_session.execute(stmt)
+        return result.rowcount
 
-    async def delete(self, db_session: Session):
-        pass
+    @staticmethod
+    async def delete(category_id: int, db_session: Session):
+        stmt = delete(Category).where(Category.id == category_id)
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_entry(entry_id: int, db_session: Session) -> List['Category']:
-        pass
+        stmt = select(Category).filter(CategoryToEntry.entry_id == entry_id,
+                                       CategoryToEntry.category_id == Category.id)
+        result = await db_session.execute(stmt)
+
+        categories: List[Category] = result.scalars().all()
+        return categories
 
     @staticmethod
     async def retrieve_by_id(category_id: int, db_session: Session) -> Optional['Category']:
-        pass
+        stmt = select(Category).where(Category.id == category_id)
+        result = await db_session.execute(stmt)
+
+        category: Optional[Category] = result.scalars().first()
+        if not category:
+            return None
+        return category
 
 
 class Slovene(Base):
@@ -228,11 +250,18 @@ class Slovene(Base):
         )
         await db_session.execute(stmt)
 
-    async def update(self, db_session: Session):
-        pass
+    async def update(self, db_session: Session) -> int:
+        stmt = update(Slovene).values({
+            "alt_form": self.alt_form
+        }).where(Slovene.id == self.id)
 
-    async def delete(self, db_session: Session):
-        pass
+        result = await db_session.execute(stmt)
+        return result.rowcount
+
+    @staticmethod
+    async def delete(slovene_id: int, db_session: Session):
+        stmt = delete(Slovene).where(Slovene.id == slovene_id)
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_id(slovene_id: int, db_session: Session) -> Optional['Slovene']:
@@ -260,12 +289,20 @@ class English(Base):
     async def update(self, db_session: Session):
         pass
 
-    async def delete(self, db_session: Session):
-        pass
+    @staticmethod
+    async def delete(english_id: int, db_session: Session):
+        stmt = delete(English).where(English.id == english_id)
+        await db_session.execute(stmt)
 
     @staticmethod
-    async def retrieve_by_id(entry_id: int, db_session: Session) -> Optional['English']:
-        pass
+    async def retrieve_by_id(english_id: int, db_session: Session) -> Optional['English']:
+        stmt = select(English).where(English.id == english_id)
+        result = await db_session.execute(stmt)
+
+        english: Optional[English] = result.scalars().first()
+        if not english:
+            return None
+        return english
 
 
 class Suggestion(Base):
@@ -276,19 +313,35 @@ class Suggestion(Base):
     child = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
                    primary_key=True)
 
-    async def save(self, db_session: Session):
-        pass
+    @staticmethod
+    async def save(parent_id: int, child_id: int, db_session: Session):
+        stmt = insert(Suggestion).values(
+            parent=parent_id,
+            child=child_id
+        )
+        await db_session.execute(stmt)
 
-    async def delete(self, db_session: Session):
-        pass
+    @staticmethod
+    async def delete(parent_id: int, child_id: int, db_session: Session):
+        stmt = delete(Suggestion).where(
+            and_(Suggestion.parent == parent_id, Suggestion.child == child_id))
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_parent(entry_id: int, db_session: Session) -> List['Entry']:
-        pass
+        stmt = select(Entry).filter(Suggestion.parent == entry_id, Entry.id == Suggestion.child)
+        result = await db_session.execute(stmt)
+
+        entries: List[Entry] = result.scalars().all()
+        return entries
 
     @staticmethod
     async def retrieve_by_child(entry_id: int, db_session: Session) -> List['Entry']:
-        pass
+        stmt = select(Entry).filter(Suggestion.child == entry_id, Entry.id == Suggestion.parent)
+        result = await db_session.execute(stmt)
+
+        entries: List[Entry] = result.scalars().all()
+        return entries
 
 
 class Translation(Base):
@@ -301,19 +354,45 @@ class Translation(Base):
     state = Column(Integer, ForeignKey('translation_states.id',
                                        ondelete="SET NULL"))
 
-    async def save(self, db_session: Session):
-        pass
-
-    async def delete(self, db_session: Session):
-        pass
+    @staticmethod
+    async def save(parent_id: int, child_id: int, state_id: Optional[int], db_session: Session):
+        stmt = insert(Translation).values(
+            parent=parent_id,
+            child=child_id,
+            state=state_id
+        )
+        await db_session.execute(stmt)
 
     @staticmethod
-    async def retrieve_by_parent(parent_id: int, db_session: Session) -> Optional['Entry']:
-        pass
+    async def delete(parent_id: int, db_session: Session):
+        stmt = delete(Translation).where(Translation.parent == parent_id)
+        await db_session.execute(stmt)
+
+    # TODO: Maybe change this some time - currently two queries which could be inefficient
+    @staticmethod
+    async def retrieve_by_parent(parent_id: int, db_session: Session) -> (Optional['Entry'], Optional['TranslationState']):
+        stmt_translation = select(Entry).where(Translation.parent == parent_id,
+                                               Entry.id == Translation.child)
+        result = await db_session.execute(stmt_translation)
+        entry: Optional[Entry] = result.scalars().first()
+        if not entry:
+            return None, None
+
+        stmt_state = select(TranslationState).where(Translation.parent == parent_id,
+                                                    Translation.child == entry.id,
+                                                    TranslationState.id == Translation.state)
+        result = await db_session.execute(stmt_state)
+        state: Optional[TranslationState] = result.scalars().first()
+
+        return entry, state
 
     @staticmethod
-    async def retrieve_by_child(child_id: int, db_session: Session) -> Optional['Entry']:
-        pass
+    async def retrieve_by_child(child_id: int, db_session: Session) -> List['Entry']:
+        stmt = select(Entry).filter(Translation.child == child_id, Entry.id == Translation.parent)
+        result = await db_session.execute(stmt)
+
+        entries: List[Entry] = result.scalars().first()
+        return entries
 
 
 class TranslationState(Base):
@@ -323,17 +402,35 @@ class TranslationState(Base):
     label = Column(String)
 
     async def save(self, db_session: Session):
-        pass
+        stmt = insert(TranslationState).values(
+            label=self.label
+        )
+        result = await db_session.execute(stmt)
+        await db_session.flush()
+        self.id = result.inserted_primary_key[0]
 
     async def update(self, db_session: Session):
-        pass
+        stmt = update(TranslationState).values({
+            "label": self.label
+        }).where(TranslationState.id == self.id)
 
-    async def delete(self, db_session: Session):
-        pass
+        result = await db_session.execute(stmt)
+        return result.rowcount
+
+    @staticmethod
+    async def delete(state_id: int, db_session: Session):
+        stmt = delete(TranslationState).where(TranslationState.id == state_id)
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_id(state_id: int, db_session: Session) -> Optional['TranslationState']:
-        pass
+        stmt = select(TranslationState).where(TranslationState.id == state_id)
+        result = await db_session.execute(stmt)
+
+        state: Optional[TranslationState] = result.scalars().first()
+        if not state:
+            return None
+        return state
 
 
 class Relation(Base):
@@ -344,19 +441,34 @@ class Relation(Base):
     entry2 = Column(Integer, ForeignKey('entries.id', ondelete="CASCADE"),
                     primary_key=True)
 
-    async def save(self, db_session: Session):
-        pass
+    @staticmethod
+    async def save(entry1, entry2, db_session: Session):
+        stmt = insert(Relation).values(
+            entry1=entry1,
+            entry2=entry2
+        )
+        await db_session.execute(stmt)
 
-    async def delete(self, db_session: Session):
-        pass
+    @staticmethod
+    async def delete(entry1: int, entry2: int, db_session: Session):
+        stmt = delete(Relation).where(Relation.entry1 == entry1, Relation.entry2 == entry2)
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_entry1(entry1: int, db_session: Session) -> List['Entry']:
-        pass
+        stmt = select(Entry).filter(Relation.entry1 == entry1, Relation.entry2 == Entry.id)
+        result = await db_session.execute(stmt)
+
+        entries: List[Entry] = result.scalars().first()
+        return entries
 
     @staticmethod
-    async def retrieve_by_entry2(entry1: int, db_session: Session) -> List['Entry']:
-        pass
+    async def retrieve_by_entry2(entry2: int, db_session: Session) -> List['Entry']:
+        stmt = select(Entry).filter(Relation.entry2 == entry2, Relation.entry1 == Entry.id)
+        result = await db_session.execute(stmt)
+
+        entries: List[Entry] = result.scalars().first()
+        return entries
 
 
 class CategoryToEntry(Base):
@@ -380,8 +492,27 @@ class Event(Base):
     time = Column(DateTime, server_default=func.now())
 
     async def save(self, db_session: Session):
-        pass
+        stmt = insert(Event).values(
+            table=self.table,
+            action=self.action,
+            record_id=self.record_id,
+            user_id=self.user_id,
+            username=self.username
+        )
+        await db_session.execute(stmt)
 
     @staticmethod
-    async def retrieve(filters: dict, db_session: Session) -> Optional['Event']:
-        pass
+    async def retrieve_all(filters: dict, db_session: Session) -> Optional['Event']:
+        count_stmt = select([func.count]).select_from(Event)
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
+        print(count)
+
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+
+        stmt = select(Entry).order_by("time").offset(offset).limit(limit)
+
+        result = await db_session.execute(stmt)
+        entries = result.scalars().all()
+        return entries
