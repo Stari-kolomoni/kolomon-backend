@@ -34,6 +34,21 @@ class EntryCreate(BaseModel):
         return entry
 
 
+class EntryUpdate(BaseModel):
+    lemma: str
+    description: Optional[str]
+    additional_info: Optional[dict]
+
+    def to_model(self, entry_id: int) -> models.Entry:
+        entry = models.Entry(
+            id=entry_id,
+            lemma=self.lemma,
+            description=self.description,
+            extra_data=self.additional_info
+        )
+        return entry
+
+
 class Entry(BaseModel):
     id: int
     lemma: str

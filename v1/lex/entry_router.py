@@ -80,6 +80,24 @@ async def retrieve_entry(entry_id: int, db: EntryDAL = Depends(get_entry_dal)):
         )
 
 
+@router.put("/{entry_id}", status_code=200,
+            responses={500: {"model": mt.Message},
+                       200: {"model": mt.Message}})
+async def update_entry(entry_id: int, entry: EntryUpdate,
+                       db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.update_entry(entry, entry_id)
+        return mt.Message(
+            detail="Entry successfully changed!"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )
+
+
 @router.get("/{entry_id}/suggest/{suggestion_id}", status_code=200,
             responses={500: {"model": mt.Message},
                        200: {"model": mt.Message},
@@ -140,6 +158,32 @@ async def add_translation(entry_id: int, translation_id: int,
         raise HTTPException(
             status_code=404,
             detail="Entry or state not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )
+
+
+@router.put("/{entry_id}/translate/{translation_id}", status_code=200,
+            responses={500: {"model": mt.Message},
+                       200: {"model": mt.Message},
+                       404: {"model": mt.Message}})
+async def update_translation_state(entry_id: int, translation_id: int,
+                                   translation_state_id: int = None,
+                                   db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.manage_translation_state(entry_id, translation_id, translation_state_id)
+        return mt.Message(
+            detail="Translation state updated!"
+        )
+    except IntegrityError as e:
+        print(e)
+        raise HTTPException(
+            status_code=404,
+            detail="State not found"
         )
     except Exception as e:
         print(e)

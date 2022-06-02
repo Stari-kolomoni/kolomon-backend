@@ -364,6 +364,13 @@ class Translation(Base):
         await db_session.execute(stmt)
 
     @staticmethod
+    async def update(parent_id: int, child_id: int, state_id: Optional[int], db_session: Session):
+        stmt = update(Translation).values(
+            state=state_id
+        ).where(Translation.parent == parent_id, Translation.child == child_id)
+        await db_session.execute(stmt)
+
+    @staticmethod
     async def delete(parent_id: int, db_session: Session):
         stmt = delete(Translation).where(Translation.parent == parent_id)
         await db_session.execute(stmt)

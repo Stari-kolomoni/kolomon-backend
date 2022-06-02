@@ -31,6 +31,10 @@ class EntryDAL:
         schema = schemas.EntryDetail.from_models(entry, suggestions, translation, state)
         return schema
 
+    async def update_entry(self, entry_update: schemas.EntryUpdate, entry_id):
+        entry = entry_update.to_model(entry_id)
+        await entry.update(self.db_session)
+
     async def add_suggestion(self, original_term, translation):
         await models.Suggestion.save(original_term, translation, self.db_session)
 
@@ -39,6 +43,9 @@ class EntryDAL:
 
     async def add_translation(self, original_term, translation, state):
         await models.Translation.save(original_term, translation, state, self.db_session)
+
+    async def manage_translation_state(self, original_term, translation, state):
+        await models.Translation.update(original_term, translation, state, self.db_session)
 
     async def remove_translation(self, original_term):
         await models.Translation.delete(original_term, self.db_session)
