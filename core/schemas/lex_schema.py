@@ -17,6 +17,28 @@ class TranslationState(BaseModel):
             label=state_model.label
         )
 
+    @staticmethod
+    def list_from_model(states_model: List[models.TranslationState]) -> List['TranslationState']:
+        schema_list: List[TranslationState] = []
+        for model in states_model:
+            schema_list.append(TranslationState.from_model(model))
+        return schema_list
+
+
+class TranslationStateList(BaseModel):
+    translation_states: List[TranslationState]
+    full_count: int
+
+
+class TranslationStateCreate(BaseModel):
+    label: str
+
+    def to_state_instance(self) -> models.TranslationState:
+        state = models.TranslationState(
+            label=self.label
+        )
+        return state
+
 
 class EntryCreate(BaseModel):
     lemma: str

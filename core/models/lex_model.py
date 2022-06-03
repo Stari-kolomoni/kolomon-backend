@@ -101,13 +101,13 @@ class Entry(Base):
 
     @staticmethod
     async def retrieve_all(filters: dict, db_session: Session) -> (List['Entry'], int):
-        count_stmt = select(func.count(Entry.id))
-        count_result = await db_session.execute(count_stmt)
-        count = count_result.scalar()
-
         offset: int = filters.get('offset', 0)
         limit: int = filters.get('limit', LIMIT_SIZE)
         sort: str = filters.get('sort', '')
+
+        count_stmt = select(func.count(Entry.id))
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
 
         stmt = select(Entry)
 
@@ -408,6 +408,9 @@ class TranslationState(Base):
     id = Column(Integer, primary_key=True, index=True)
     label = Column(String)
 
+    def __repr__(self):
+        return f"Translation state[{self.id}]: {self.label}"
+
     async def save(self, db_session: Session):
         stmt = insert(TranslationState).values(
             label=self.label
@@ -438,6 +441,21 @@ class TranslationState(Base):
         if not state:
             return None
         return state
+
+    @staticmethod
+    async def retrieve_all(filters: dict, db_session: Session) -> (List['TranslationState'], int):
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+
+        count_stmt = select(func.count(TranslationState.id))
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
+
+        stmt = select(TranslationState).offset(offset).limit(limit)
+        result = await db_session.execute(stmt)
+        states: List[TranslationState] = result.scalars().all()
+
+        return states, count
 
 
 class Relation(Base):
@@ -509,11 +527,10 @@ class Event(Base):
         await db_session.execute(stmt)
 
     @staticmethod
-    async def retrieve_all(filters: dict, db_session: Session) -> Optional['Event']:
+    async def retrieve_all(filters: dict, db_session: Session) -> (List['Event'], int):
         count_stmt = select([func.count]).select_from(Event)
         count_result = await db_session.execute(count_stmt)
         count = count_result.scalar()
-        print(count)
 
         offset: int = filters.get('offset', 0)
         limit: int = filters.get('limit', LIMIT_SIZE)
@@ -522,4 +539,4 @@ class Event(Base):
 
         result = await db_session.execute(stmt)
         entries = result.scalars().all()
-        return entries
+        return entries, count
