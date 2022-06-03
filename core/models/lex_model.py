@@ -159,6 +159,13 @@ class Entry(Base):
         entries = result.scalars().all()
         return entries, count
 
+    @staticmethod
+    async def retrieve_n_latest(n: int, db_session: Session) -> List['Entry']:
+        stmt = select(Entry).order_by(Entry.modified, Entry.created).limit(n)
+        result = await db_session.execute(stmt)
+        entries = result.scalars().all()
+        return entries
+
 
 class Link(Base):
     __tablename__ = "links"
@@ -269,6 +276,30 @@ class Category(Base):
         if not category:
             return None
         return category
+
+    @staticmethod
+    async def retrieve_all(filters: dict, db_session: Session) -> (List['Category'], int):
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+        sort: str = filters.get('sort', '')
+
+        count_stmt = select(func.count(Category.id))
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
+
+        stmt = select(Category)
+
+        sort_list = []
+        if "-name" in sort:
+            sort_list.append(desc("name"))
+        elif "name" in sort:
+            sort_list.append("name")
+        stmt = stmt.order_by(*sort_list)
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await db_session.execute(stmt)
+        entries: List[Category] = result.scalars().all()
+        return entries, count
 
 
 class Slovene(Base):

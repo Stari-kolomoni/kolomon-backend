@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 
@@ -48,6 +50,22 @@ async def retrieve_entries(sort: str = "lemma", offset: int = None, limit: int =
     }
     try:
         schema = await db.retrieve_entries(filters)
+        return schema
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )
+
+
+@router.get("/latest", status_code=200,
+            responses={500: {"model": mt.Message},
+                       200: {"model": EntryList}})
+async def retrieve_latest_entries(number_of_entries: int = 10,
+                                  db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        schema = await db.retrieve_latest_n_entries(number_of_entries)
         return schema
     except Exception as e:
         print(e)

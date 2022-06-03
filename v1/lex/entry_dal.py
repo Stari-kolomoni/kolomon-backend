@@ -21,14 +21,27 @@ class EntryDAL:
         )
         return schema
 
+    async def retrieve_latest_n_entries(self, n: int):
+        entries = await models.Entry.retrieve_n_latest(n, self.db_session)
+        schema_entries = schemas.Entry.list_from_model(entries)
+        schema = schemas.EntryList(
+            entries=schema_entries,
+            full_count=len(schema_entries)
+        )
+        return schema
+
     async def retrieve_entry_by_id(self, entry_id: int):
         entry = await models.Entry.retrieve_by_id(entry_id, self.db_session)
         suggestions = await models.Suggestion.retrieve_by_parent(entry_id, self.db_session)
         translation, state = await models.Translation.retrieve_by_parent(entry_id, self.db_session)
         links = await models.Link.retrieve_by_entry(entry_id, self.db_session)
         related = await models.Relation.retrieve_by_entry1(entry_id, self.db_session)
+        categories = await models.Category.retrieve_by_entry(entry_id, self.db_session)
 
-        schema = schemas.EntryDetail.from_models(entry, suggestions, translation, state, links, related)
+        schema = None
+        if entry:
+            schema = schemas.EntryDetail.from_models(entry, suggestions, translation,
+                                                     state, links, related, categories)
         return schema
 
     async def update_entry(self, entry_update: schemas.EntryUpdate, entry_id: int):

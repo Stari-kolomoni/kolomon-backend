@@ -74,6 +74,43 @@ class LinkCreate(BaseModel):
         return link
 
 
+class Category(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+
+    @staticmethod
+    def from_model(category_model: models.Category):
+        return Category(
+            id=category_model.id,
+            name=category_model.name,
+            description=category_model.description
+        )
+
+    @staticmethod
+    def list_from_model(categories_model: List[models.Category]):
+        schema_list: List[Category] = []
+        for model in categories_model:
+            schema_list.append(Category.from_model(model))
+        return schema_list
+
+
+class CategoryList(BaseModel):
+    categories: List[Category]
+    full_count: int
+
+
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str]
+
+    def to_category_instance(self) -> models.Category:
+        return models.Category(
+            name=self.name,
+            description=self.description
+        )
+
+
 class EntryCreate(BaseModel):
     lemma: str
     description: Optional[str]
@@ -176,6 +213,7 @@ class EntryDetail(BaseModel):
     translation_state: Optional[TranslationState]
     links: List[Link]
     related_entries: List[EntryMinimal]
+    categories: List[Category]
 
     created: datetime.datetime
     edited: Optional[datetime.datetime]
@@ -186,7 +224,9 @@ class EntryDetail(BaseModel):
                     translation_model: Optional[models.Entry],
                     state_model: Optional[models.TranslationState],
                     links_model: List[models.Link],
-                    related_entries_model: List[models.Entry]):
+                    related_entries_model: List[models.Entry],
+                    categories_model: List[models.Category]):
+
         suggestions = Entry.list_from_model(suggestions_model)
 
         translation = None
@@ -200,6 +240,8 @@ class EntryDetail(BaseModel):
 
         related_entries = EntryMinimal.list_from_model(related_entries_model)
 
+        categories = Category.list_from_model(categories_model)
+
         entry = EntryDetail(
             id=entry_model.id,
             lemma=entry_model.lemma,
@@ -212,6 +254,7 @@ class EntryDetail(BaseModel):
             translation_state=state,
             links=links,
             related_entries=related_entries,
+            categories=categories,
 
             created=entry_model.created,
             edited=entry_model.modified
