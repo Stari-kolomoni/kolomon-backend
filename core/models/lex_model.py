@@ -484,7 +484,7 @@ class Relation(Base):
         stmt = select(Entry).filter(Relation.entry1 == entry1, Relation.entry2 == Entry.id)
         result = await db_session.execute(stmt)
 
-        entries: List[Entry] = result.scalars().first()
+        entries: List[Entry] = result.scalars().all()
         return entries
 
     @staticmethod
@@ -492,7 +492,7 @@ class Relation(Base):
         stmt = select(Entry).filter(Relation.entry2 == entry2, Relation.entry1 == Entry.id)
         result = await db_session.execute(stmt)
 
-        entries: List[Entry] = result.scalars().first()
+        entries: List[Entry] = result.scalars().all()
         return entries
 
 

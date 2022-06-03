@@ -251,3 +251,71 @@ async def remove_relation(entry_id: int, other_entry_id: int,
             status_code=500,
             detail="Server error"
         )
+
+
+@router.post("/{entry_id}/link", status_code=201,
+             responses={500: {"model": mt.Message},
+                        200: {"model": mt.Message},
+                        404: {"model": mt.Message}})
+async def add_link_to_entry(entry_id: int, link: LinkCreate,
+                            db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.add_link(link, entry_id)
+        return mt.Message(
+            detail="Link successfully added!"
+        )
+    except IntegrityError as e:
+        print(e)
+        raise HTTPException(
+            status_code=404,
+            detail="Entry not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )
+
+
+@router.delete("/{entry_id}/link/{link_id}", status_code=200,
+               responses={500: {"model": mt.Message},
+                          200: {"model": mt.Message}})
+async def remove_link(entry_id: int, link_id: int,
+                      db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.remove_link(link_id)
+        return mt.Message(
+            detail="Link removed!"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )
+
+
+@router.put("/{entry_id}/link/{link_id}", status_code=200,
+            responses={500: {"model": mt.Message},
+                       200: {"model": mt.Message},
+                       404: {"model": mt.Message}})
+async def update_link(entry_id: int, link_id: int, link: LinkCreate,
+                      db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.update_link(entry_id, link_id, link)
+        return mt.Message(
+            detail="Link updated!"
+        )
+    except IntegrityError as e:
+        print(e)
+        raise HTTPException(
+            status_code=404,
+            detail="Entry not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )

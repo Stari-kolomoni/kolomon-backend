@@ -40,6 +40,40 @@ class TranslationStateCreate(BaseModel):
         return state
 
 
+class Link(BaseModel):
+    id: int
+    title: Optional[str]
+    url: str
+
+    @staticmethod
+    def from_model(link_model: models.Link) -> 'Link':
+        return Link(
+            id=link_model.id,
+            title=link_model.title,
+            url=link_model.url
+        )
+
+    @staticmethod
+    def list_from_model(links_model: List[models.Link]):
+        schema_list: List[Link] = []
+        for model in links_model:
+            schema_list.append(Link.from_model(model))
+        return schema_list
+
+
+class LinkCreate(BaseModel):
+    title: Optional[str]
+    url: str
+
+    def to_link_instance(self, entry_id: int) -> models.Link:
+        link = models.Link(
+            title=self.title,
+            url=self.url,
+            entry_id=entry_id
+        )
+        return link
+
+
 class EntryCreate(BaseModel):
     lemma: str
     description: Optional[str]
@@ -106,15 +140,43 @@ class EntryList(BaseModel):
     full_count: int
 
 
+class EntryMinimal(BaseModel):
+    id: int
+    lemma: str
+    created: datetime.datetime
+    edited: Optional[datetime.datetime]
+
+    @staticmethod
+    def from_model(model: models.Entry) -> 'EntryMinimal':
+        entry = EntryMinimal(
+            id=model.id,
+            lemma=model.lemma,
+            created=model.created,
+            edited=model.modified
+        )
+        return entry
+
+    @staticmethod
+    def list_from_model(model_list: List[models.Entry]) -> List['EntryMinimal']:
+        entries = []
+        for model in model_list:
+            entries.append(EntryMinimal.from_model(model))
+        return entries
+
+
 class EntryDetail(BaseModel):
     id: int
     lemma: str
     description: Optional[str]
     language: Optional[str]
     additional_info: Optional[dict]
+
     suggestions: List[Entry]
     translation: Optional[Entry]
     translation_state: Optional[TranslationState]
+    links: List[Link]
+    related_entries: List[EntryMinimal]
+
     created: datetime.datetime
     edited: Optional[datetime.datetime]
 
@@ -122,7 +184,9 @@ class EntryDetail(BaseModel):
     def from_models(entry_model: models.Entry,
                     suggestions_model: List[models.Entry],
                     translation_model: Optional[models.Entry],
-                    state_model: Optional[models.TranslationState]):
+                    state_model: Optional[models.TranslationState],
+                    links_model: List[models.Link],
+                    related_entries_model: List[models.Entry]):
         suggestions = Entry.list_from_model(suggestions_model)
 
         translation = None
@@ -132,15 +196,23 @@ class EntryDetail(BaseModel):
         if state_model:
             state = TranslationState.from_model(state_model)
 
+        links = Link.list_from_model(links_model)
+
+        related_entries = EntryMinimal.list_from_model(related_entries_model)
+
         entry = EntryDetail(
             id=entry_model.id,
             lemma=entry_model.lemma,
             description=entry_model.description,
             language=entry_model.language,
             additional_info=entry_model.extra_data,
+
             suggestions=suggestions,
             translation=translation,
             translation_state=state,
+            links=links,
+            related_entries=related_entries,
+
             created=entry_model.created,
             edited=entry_model.modified
         )

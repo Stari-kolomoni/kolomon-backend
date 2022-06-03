@@ -25,8 +25,10 @@ class EntryDAL:
         entry = await models.Entry.retrieve_by_id(entry_id, self.db_session)
         suggestions = await models.Suggestion.retrieve_by_parent(entry_id, self.db_session)
         translation, state = await models.Translation.retrieve_by_parent(entry_id, self.db_session)
+        links = await models.Link.retrieve_by_entry(entry_id, self.db_session)
+        related = await models.Relation.retrieve_by_entry1(entry_id, self.db_session)
 
-        schema = schemas.EntryDetail.from_models(entry, suggestions, translation, state)
+        schema = schemas.EntryDetail.from_models(entry, suggestions, translation, state, links, related)
         return schema
 
     async def update_entry(self, entry_update: schemas.EntryUpdate, entry_id: int):
@@ -54,3 +56,15 @@ class EntryDAL:
 
     async def remove_relation(self, entry1: int, entry2: int):
         await models.Relation.delete(entry1, entry2, self.db_session)
+
+    async def add_link(self, link_create: schemas.LinkCreate, entry_id: int):
+        link = link_create.to_link_instance(entry_id)
+        await link.save(self.db_session)
+
+    async def remove_link(self, link_id: int):
+        await models.Link.delete(link_id, self.db_session)
+
+    async def update_link(self, entry_id: int, link_id: int, link_update: schemas.LinkCreate):
+        link = link_update.to_link_instance(entry_id)
+        link.id = link_id
+        await link.update(self.db_session)
