@@ -319,3 +319,46 @@ async def update_link(entry_id: int, link_id: int, link: LinkCreate,
             status_code=500,
             detail="Server error"
         )
+
+
+@router.get("/{entry_id}/category/{category_id}", status_code=200,
+            responses={500: {"model": mt.Message},
+                       200: {"model": mt.Message},
+                       404: {"model": mt.Message}})
+async def add_category_to_entry(entry_id: int, category_id: int,
+                                db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.add_category(entry_id, category_id)
+        return mt.Message(
+            detail="Category bound to entry!"
+        )
+    except IntegrityError as e:
+        print(e)
+        raise HTTPException(
+            status_code=404,
+            detail="Entry or category not found"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )
+
+
+@router.delete("/{entry_id}/category/{category_id}", status_code=200,
+               responses={500: {"model": mt.Message},
+                          200: {"model": mt.Message}})
+async def remove_category_from_entry(entry_id: int, category_id: int,
+                                     db: EntryDAL = Depends(get_entry_dal)):
+    try:
+        await db.remove_category(entry_id, category_id)
+        return mt.Message(
+            detail="Category unbound from entry!"
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail="Server error"
+        )

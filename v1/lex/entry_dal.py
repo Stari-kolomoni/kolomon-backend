@@ -68,3 +68,9 @@ class EntryDAL:
         link = link_update.to_link_instance(entry_id)
         link.id = link_id
         await link.update(self.db_session)
+
+    async def add_category(self, entry_id: int, category_id: int):
+        await models.Category.bind_to_entry(entry_id, category_id, self.db_session)
+
+    async def remove_category(self, entry_id: int, category_id: int):
+        await models.Category.unbind_from_entry(entry_id, category_id, self.db_session)

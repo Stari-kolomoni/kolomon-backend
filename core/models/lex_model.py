@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, text
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.orm import Session
 from sqlalchemy import insert, update, delete, desc, and_
 from sqlalchemy.future import select
@@ -39,14 +39,6 @@ class Entry(Base):
         return f"Entry[{self.id}]: {self.lemma}"
 
     async def save(self, db_session: Session):
-        """
-        Saves to the database the Entry on which the method is executed.
-        After successful execution, the 'id' property of this Entry
-        is populated with the value assigned to the record in the database.
-        NOTE: properties 'created' and 'modified' are not populated,
-        a separate retrieval is needed for that.
-        """
-
         stmt = insert(Entry).values(
             lemma=self.lemma,
             description=self.description,
@@ -132,6 +124,41 @@ class Entry(Base):
         entries = result.scalars().all()
         return entries, count
 
+    @staticmethod
+    async def retrieve_by_category(filters: dict, category_id: int, db_session: Session) -> (List['Entry'], int):
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+        sort: str = filters.get('sort', '')
+
+        count_stmt = select(func.count(Entry.id)).where(CategoryToEntry.category_id == category_id,
+                                                        Entry == CategoryToEntry.entry_id)
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
+
+        stmt = select(Entry).where(CategoryToEntry.category_id == category_id,
+                                   Entry == CategoryToEntry.entry_id)
+
+        sort_list = []
+        if "-lemma" in sort:
+            sort_list.append(desc("lemma"))
+        elif "lemma" in sort:
+            sort_list.append("lemma")
+        if "-description" in sort:
+            sort_list.append(desc("description"))
+        elif "description" in sort:
+            sort_list.append("description")
+        if "-language" in sort:
+            sort_list.append(desc("language"))
+        elif "language" in sort:
+            sort_list.append("language")
+        stmt = stmt.order_by(*sort_list)
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await db_session.execute(stmt)
+
+        entries = result.scalars().all()
+        return entries, count
+
 
 class Link(Base):
     __tablename__ = "links"
@@ -189,12 +216,6 @@ class Category(Base):
         return f"Category[{self.id}]: {self.name}"
 
     async def save(self, db_session: Session):
-        """
-        Saves to the database the Category on which the method is executed.
-        After successful execution, the 'id' property of this Category
-        is populated with the value assigned to the record in the database.
-        """
-
         stmt = insert(Category).values(
             name=self.name,
             description=self.description
@@ -224,6 +245,20 @@ class Category(Base):
 
         categories: List[Category] = result.scalars().all()
         return categories
+
+    @staticmethod
+    async def bind_to_entry(entry_id: int, category_id: int, db_session: Session):
+        stmt = insert(CategoryToEntry).values(
+            entry_id=entry_id,
+            category_id=category_id
+        )
+        await db_session.execute(stmt)
+
+    @staticmethod
+    async def unbind_from_entry(entry_id: int, category_id: int, db_session: Session):
+        stmt = delete(CategoryToEntry).where(CategoryToEntry.entry_id == entry_id,
+                                             CategoryToEntry.category_id == category_id)
+        await db_session.execute(stmt)
 
     @staticmethod
     async def retrieve_by_id(category_id: int, db_session: Session) -> Optional['Category']:
@@ -377,7 +412,8 @@ class Translation(Base):
 
     # TODO: Maybe change this some time - currently two queries which could be inefficient
     @staticmethod
-    async def retrieve_by_parent(parent_id: int, db_session: Session) -> (Optional['Entry'], Optional['TranslationState']):
+    async def retrieve_by_parent(parent_id: int, db_session: Session) -> (Optional['Entry'],
+                                                                          Optional['TranslationState']):
         stmt_translation = select(Entry).where(Translation.parent == parent_id,
                                                Entry.id == Translation.child)
         result = await db_session.execute(stmt_translation)
