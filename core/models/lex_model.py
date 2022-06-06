@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.orm import Session
-from sqlalchemy import insert, update, delete, desc, and_
+from sqlalchemy import insert, update, delete, desc, and_, text
 from sqlalchemy.future import select
 
 from .database import Base
@@ -165,6 +165,63 @@ class Entry(Base):
         result = await db_session.execute(stmt)
         entries = result.scalars().all()
         return entries
+
+    @staticmethod
+    async def simple_search_all(query: str, filters: dict, db_session: Session) -> List['Entry']:
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+        query = f"%{query}%"
+
+        stmt = select(Entry).where(Entry.lemma.like(query)).offset(offset).limit(limit)
+        result = await db_session.execute(stmt)
+        entries = result.scalars().all()
+        return entries
+
+    @staticmethod
+    async def simple_search_lang(query: str, lang: str, filters: dict, db_session: Session) -> List['Entry']:
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+        query = f"%{query}%"
+
+        stmt = select(Entry).where(and_(Entry.language == lang,
+                                        Entry.lemma.like(query))).offset(offset).limit(limit)
+        result = await db_session.execute(stmt)
+        entries = result.scalars().all()
+        return entries
+
+    @staticmethod
+    async def full_search_lang(query: str, lang: str, filters: dict, db_session: Session):
+        offset: int = filters.get('offset', 0)
+        limit: int = filters.get('limit', LIMIT_SIZE)
+        query = f"%{query}%"
+
+        if lang == 'sl':
+            stmt = text("""SELECT e1.id, e1.lemma, e1.description, e1.language, e1.created, e1.modified, e2.id, e2.lemma, e2.description, e2.language, e2.created, e2.modified
+                        FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
+                        FULL OUTER JOIN entries e2 ON t.child = e2.id
+                        WHERE (e1.language = 'en' OR e2.language = 'sl')
+                        AND (e2.lemma LIKE :query)
+                        OFFSET :offset LIMIT :limit""")
+        elif lang == 'en':
+            stmt = text("""SELECT e1.id, e1.lemma, e1.description, e1.language, e1.created, e1.modified, e2.id, e2.lemma, e2.description, e2.language, e2.created, e2.modified
+                        FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
+                        FULL OUTER JOIN entries e2 ON t.child = e2.id
+                        WHERE (e1.language = 'en' OR e2.language = 'sl')
+                        AND (e1.lemma LIKE :query)
+                        OFFSET :offset LIMIT :limit""")
+        else:
+            stmt = text("""SELECT e1.id, e1.lemma, e1.description, e1.language, e1.created, e1.modified, e2.id, e2.lemma, e2.description, e2.language, e2.created, e2.modified
+                        FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
+                        FULL OUTER JOIN entries e2 ON t.child = e2.id
+                        WHERE (e1.language = 'en' OR e2.language = 'sl')
+                        AND (e1.lemma LIKE :query OR e2.lemma LIKE :query)
+                        OFFSET :offset LIMIT :limit""")
+
+        result = await db_session.execute(stmt, {"query": query,
+                                                 "offset": offset,
+                                                 "limit": limit})
+        entries = result.all()
+        return EntryPair.from_row_list(entries)
 
 
 class Link(Base):
@@ -607,3 +664,44 @@ class Event(Base):
         result = await db_session.execute(stmt)
         entries = result.scalars().all()
         return entries, count
+
+
+class EntryPair:
+    entry1: Optional[Entry]
+    entry2: Optional[Entry]
+
+    def __init__(self, e1, e2):
+        self.entry1 = e1
+        self.entry2 = e2
+
+    @staticmethod
+    def from_row(row) -> 'EntryPair':
+        entry1 = None
+        entry2 = None
+
+        if row[0]:
+            entry1 = Entry()
+            entry1.id = row[0]
+            entry1.lemma = row[1]
+            entry1.description = row[2]
+            entry1.language = row[3]
+            entry1.created = row[4]
+            entry1.modified = row[5]
+
+        if row[6]:
+            entry2 = Entry()
+            entry2.id = row[6]
+            entry2.lemma = row[7]
+            entry2.description = row[8]
+            entry2.language = row[9]
+            entry2.created = row[10]
+            entry2.modified = row[11]
+
+        return EntryPair(entry1, entry2)
+
+    @staticmethod
+    def from_row_list(rows) -> List['EntryPair']:
+        pair_list = []
+        for row in rows:
+            pair_list.append(EntryPair.from_row(row))
+        return pair_list

@@ -100,6 +100,10 @@ and install the project dependencies.
 > Shouldn't be too different, but TODO.
 
 
+## 2.3. Database
+
+PostgreSQL, requires extension `pg_trgm` (can be installed with `CREATE EXTENSION pg_trgm;` command)!
+
 ---
 
 

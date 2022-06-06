@@ -260,3 +260,31 @@ class EntryDetail(BaseModel):
             edited=entry_model.modified
         )
         return entry
+
+
+class EntryPair(BaseModel):
+    english: Optional[Entry]
+    slovene: Optional[Entry]
+
+    @staticmethod
+    def from_model(pair_model: models.EntryPair):
+        entry1 = None
+        entry2 = None
+
+        if pair_model.entry1:
+            entry1 = Entry.from_model(pair_model.entry1)
+        if pair_model.entry2:
+            entry2 = Entry.from_model(pair_model.entry2)
+
+        pair = EntryPair(
+            english=entry1,
+            slovene=entry2
+        )
+        return pair
+
+    @staticmethod
+    def from_list_models(model_list: List[models.EntryPair]):
+        schema_list = []
+        for item in model_list:
+            schema_list.append(EntryPair.from_model(item))
+        return schema_list
