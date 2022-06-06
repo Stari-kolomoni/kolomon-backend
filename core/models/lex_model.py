@@ -167,30 +167,39 @@ class Entry(Base):
         return entries
 
     @staticmethod
-    async def simple_search_all(query: str, filters: dict, db_session: Session) -> List['Entry']:
+    async def simple_search_all(query: str, filters: dict, db_session: Session) -> (List['Entry'], int):
         offset: int = filters.get('offset', 0)
         limit: int = filters.get('limit', LIMIT_SIZE)
         query = f"%{query}%"
+
+        count_stmt = select(func.count(Entry.id)).where(Entry.lemma.like(query))
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
 
         stmt = select(Entry).where(Entry.lemma.like(query)).offset(offset).limit(limit)
         result = await db_session.execute(stmt)
         entries = result.scalars().all()
-        return entries
+        return entries, count
 
     @staticmethod
-    async def simple_search_lang(query: str, lang: str, filters: dict, db_session: Session) -> List['Entry']:
+    async def simple_search_lang(query: str, lang: str, filters: dict, db_session: Session) -> (List['Entry'], int):
         offset: int = filters.get('offset', 0)
         limit: int = filters.get('limit', LIMIT_SIZE)
         query = f"%{query}%"
+
+        count_stmt = select(func.count(Entry.id)).where(and_(Entry.lemma.like(query),
+                                                             Entry.language == lang))
+        count_result = await db_session.execute(count_stmt)
+        count = count_result.scalar()
 
         stmt = select(Entry).where(and_(Entry.language == lang,
                                         Entry.lemma.like(query))).offset(offset).limit(limit)
         result = await db_session.execute(stmt)
         entries = result.scalars().all()
-        return entries
+        return entries, count
 
     @staticmethod
-    async def full_search_lang(query: str, lang: str, filters: dict, db_session: Session):
+    async def full_search_lang(query: str, lang: str, filters: dict, db_session: Session) -> (List['EntryPair'], int):
         offset: int = filters.get('offset', 0)
         limit: int = filters.get('limit', LIMIT_SIZE)
         query = f"%{query}%"
@@ -202,6 +211,11 @@ class Entry(Base):
                         WHERE (e1.language = 'en' OR e2.language = 'sl')
                         AND (e2.lemma LIKE :query)
                         OFFSET :offset LIMIT :limit""")
+            count_stmt = text("""SELECT COUNT(*)
+                                FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
+                                FULL OUTER JOIN entries e2 ON t.child = e2.id
+                                WHERE (e1.language = 'en' OR e2.language = 'sl')
+                                AND (e2.lemma LIKE :query)""")
         elif lang == 'en':
             stmt = text("""SELECT e1.id, e1.lemma, e1.description, e1.language, e1.created, e1.modified, e2.id, e2.lemma, e2.description, e2.language, e2.created, e2.modified
                         FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
@@ -209,6 +223,11 @@ class Entry(Base):
                         WHERE (e1.language = 'en' OR e2.language = 'sl')
                         AND (e1.lemma LIKE :query)
                         OFFSET :offset LIMIT :limit""")
+            count_stmt = text("""SELECT COUNT(*)
+                                FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
+                                FULL OUTER JOIN entries e2 ON t.child = e2.id
+                                WHERE (e1.language = 'en' OR e2.language = 'sl')
+                                AND (e1.lemma LIKE :query)""")
         else:
             stmt = text("""SELECT e1.id, e1.lemma, e1.description, e1.language, e1.created, e1.modified, e2.id, e2.lemma, e2.description, e2.language, e2.created, e2.modified
                         FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
@@ -216,12 +235,20 @@ class Entry(Base):
                         WHERE (e1.language = 'en' OR e2.language = 'sl')
                         AND (e1.lemma LIKE :query OR e2.lemma LIKE :query)
                         OFFSET :offset LIMIT :limit""")
+            count_stmt = text("""SELECT COUNT(*)
+                                FROM entries e1 FULL OUTER JOIN translations t ON e1.id = t.parent AND e1.language = 'en'
+                                FULL OUTER JOIN entries e2 ON t.child = e2.id
+                                WHERE (e1.language = 'en' OR e2.language = 'sl')
+                                AND (e1.lemma LIKE '%%' OR e2.lemma LIKE '%%')""")
+
+        count_result = await db_session.execute(count_stmt, {"query": query})
+        count: int = count_result.scalar()
 
         result = await db_session.execute(stmt, {"query": query,
                                                  "offset": offset,
                                                  "limit": limit})
         entries = result.all()
-        return EntryPair.from_row_list(entries)
+        return EntryPair.from_row_list(entries), count
 
 
 class Link(Base):

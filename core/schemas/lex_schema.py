@@ -288,3 +288,13 @@ class EntryPair(BaseModel):
         for item in model_list:
             schema_list.append(EntryPair.from_model(item))
         return schema_list
+
+
+class EntryPairList(BaseModel):
+    entries: List[EntryPair]
+    full_count: int
+
+
+class MinimalEntryList(BaseModel):
+    entries: List[EntryMinimal]
+    full_count: int
