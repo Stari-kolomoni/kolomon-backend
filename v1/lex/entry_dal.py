@@ -55,8 +55,12 @@ class EntryDAL:
         await models.Suggestion.delete(original_term, translation, self.db_session)
 
     async def add_translation(self, original_term: int, translation: int, state: int):
-        await models.Translation.delete(original_term, self.db_session)
-        await models.Translation.save(original_term, translation, state, self.db_session)
+        # Because fucking edge case
+        entry1 = await models.Entry.retrieve_by_id(original_term, self.db_session)
+        entry2 = await models.Entry.retrieve_by_id(translation, self.db_session)
+        if entry1.language == 'en' and entry2.language == 'sl':
+            await models.Translation.delete(original_term, self.db_session)
+            await models.Translation.save(original_term, translation, state, self.db_session)
 
     async def manage_translation_state(self, original_term: int, translation: int, state: int):
         await models.Translation.update(original_term, translation, state, self.db_session)
